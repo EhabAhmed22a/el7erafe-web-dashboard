@@ -80,6 +80,5 @@ jobs:
             --source ./elherafe-web-dashboard/browser/ \
             --account-name ${{ env.AZURE_STORAGE_ACCOUNT }} \
             --auth-mode login \
-            --container-name ${{ env.AZURE_STORAGE_CONTAINER }} \
             --overwrite
         
