@@ -69,7 +69,7 @@ jobs:
         azcliversion: 2.40.0
         inlineScript: |
           az storage blob upload-batch \
-            --account-name ${{ env.AZURE_STORAGE_ACCOUNT }}-production \
+            --account-name ${{ env.AZURE_STORAGE_ACCOUNT }} \
             --source ./elherafe-web-dashboard/browser/ \
             --destination '$web' \
             --overwrite
