@@ -15,6 +15,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    - name: check if the package-lock.json exists
+      run: |
+        if [ ! -f package-lock.json ]; then
+          echo "package-lock.json not found!"
+          exit 1
+        fi
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
