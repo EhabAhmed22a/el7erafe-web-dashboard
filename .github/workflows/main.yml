@@ -71,9 +71,9 @@ jobs:
 
 
     - name: Deploy to Azure Storage     
-      uses: azure/CLI@v1
+      uses: azure/CLI@v2
       with:
-        azcliversion: 2.58.0 
+        azcliversion: 2.80.0 
         inlineScript: |
            az storage blob upload-batch \
             --destination '$web' \
