@@ -51,7 +51,7 @@ jobs:
 
   deploy-to-staging:
     if: github.ref == 'refs/heads/main'
-    needs: test-and-build
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Download build artifacts
