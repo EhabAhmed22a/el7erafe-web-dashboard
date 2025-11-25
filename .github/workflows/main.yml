@@ -46,7 +46,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dist-files
-        path: dist/
+        path: ./elherafe-web-dashboard/dist/
         retention-days: 1
 
   deploy-to-staging:
