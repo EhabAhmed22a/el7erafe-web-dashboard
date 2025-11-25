@@ -12,12 +12,16 @@ env:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+          working-directory: ./elherafe-web-dashboard
+   
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: check if the package-lock.json exists
       run: |
-        ls -la
+        
         if [ ! -f package-lock.json ]; then
           echo "package-lock.json not found!"
           exit 1
