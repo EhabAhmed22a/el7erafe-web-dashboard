@@ -70,7 +70,7 @@ jobs:
         inlineScript: |
           az storage blob upload-batch \
             --account-name ${{ env.AZURE_STORAGE_ACCOUNT }}-production \
-            --source ./dist/elherafe-web-dashboard/browser/ \
+            --source ./elherafe-web-dashboard/dist/elherafe-web-dashboard/browser/ \
             --destination '$web' \
             --overwrite
         
