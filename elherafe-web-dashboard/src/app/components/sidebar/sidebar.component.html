@@ -1,0 +1,51 @@
+<aside class="h-full w-64 bg-white text-black flex flex-col" dir="rtl">
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-4 py-6 space-y-2">
+        <a routerLink="/dashboard-users" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>المستخدمين</span>
+        </a>
+
+        <a routerLink="/dashboard-craftsmen" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg>
+            <span>الحرفيين</span>
+        </a>
+
+        <a routerLink="/dashboard-registration-requests" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.25" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+            </svg>
+            <span>طلبات التسجيل كحرفى</span>
+        </a>
+
+        <a routerLink="/dashboard-orders" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13V7"/><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="m9 10 3 3 3-3"/></svg>
+            <span>الطلبات</span>
+        </a>
+
+        <a routerLink="/dashboard-services" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+            <span>الخدمات</span>
+        </a>
+
+        <a routerLink="/dashboard-messages" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/></svg>
+            <span>الرسايل</span>
+        </a>
+    </nav>
+
+    <!-- Bottom Section: Settings + Logout -->
+    <div class="px-4 py-4 border-gray-200 space-y-2">
+        <a routerLink="/dashboard-settings" routerLinkActive="bg-[#3775FA] text-white" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition text-gray-700 [&.bg-\[\#3775FA\]]:hover:bg-[#3775FA] [&.bg-\[\#3775FA\]]:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>الإعدادات</span>
+        </a>
+
+        <a routerLink="/login" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition text-black">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f36d6d" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>تسجيل الخروج</span>
+        </a>
+    </div>
+
+</aside>
