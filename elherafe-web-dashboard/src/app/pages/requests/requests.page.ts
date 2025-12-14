@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { RequestsService } from '../../services/requests.service';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
 
 interface TechnicianRequest {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   service: string;
   location: string;
   status: 'pending' | 'approved' | 'rejected';
+  // Add any other fields from backend as needed
 }
 
 interface RejectionData {
@@ -26,7 +28,7 @@ interface RejectionData {
   templateUrl: './requests.page.html',
   styleUrl: './requests.page.css',
 })
-export class RequestsPage {
+export class RequestsPage implements OnInit {
   searchQuery = '';
   activeTab: 'all' | 'pending' | 'approved' | 'rejected' = 'pending';
   
@@ -46,17 +48,30 @@ export class RequestsPage {
     customReason: ''
   };
 
-  // Sample requests data
-  requests: TechnicianRequest[] = [
-    { id: 1, name: 'أحمد محمد السيد', phone: '01012345678', service: 'سباك', location: 'القاهرة / مدينة نصر', status: 'pending' },
-    { id: 2, name: 'محمود عبدالله', phone: '01198765432', service: 'كهربائي', location: 'الجيزة / الهرم', status: 'pending' },
-    { id: 3, name: 'حسن إبراهيم', phone: '01234567890', service: 'نجار', location: 'الإسكندرية / سموحة', status: 'approved' },
-    { id: 4, name: 'سامي يوسف', phone: '01567891234', service: 'نقاش', location: 'المنصورة / حي الجامعة', status: 'pending' },
-    { id: 5, name: 'خالد عمر', phone: '01098765123', service: 'فني تكييف', location: 'القاهرة / المعادي', status: 'rejected' },
-    { id: 6, name: 'عمرو حسين', phone: '01122334455', service: 'حداد', location: 'القاهرة / شبرا', status: 'pending' },
-    { id: 7, name: 'ياسر أحمد', phone: '01555666777', service: 'بناء', location: 'الجيزة / 6 أكتوبر', status: 'approved' },
-    { id: 8, name: 'طارق محمد', phone: '01888999000', service: 'فني ألومنيوم', location: 'الإسكندرية / المنتزه', status: 'pending' },
-  ];
+  requests: TechnicianRequest[] = [];
+  loading = false;
+  error = '';
+
+  constructor(private requestsService: RequestsService) {}
+
+  ngOnInit() {
+    this.fetchRequests();
+  }
+
+  fetchRequests() {
+    this.loading = true;
+    this.error = '';
+    this.requestsService.getTechnicianRequests(1).subscribe({
+      next: (res) => {
+        this.requests = res.data || res || [];
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'فشل في تحميل الطلبات';
+        this.loading = false;
+      }
+    });
+  }
 
   get pendingCount(): number {
     return this.requests.filter(r => r.status === 'pending').length;
@@ -99,10 +114,14 @@ export class RequestsPage {
 
   // Approve Request
   approveRequest(request: TechnicianRequest) {
-    const index = this.requests.findIndex(r => r.id === request.id);
-    if (index !== -1) {
-      this.requests[index].status = 'approved';
-    }
+    this.requestsService.approveTechnician(request.id).subscribe({
+      next: () => {
+        request.status = 'approved';
+      },
+      error: (err) => {
+        alert('فشل في قبول الفني');
+      }
+    });
   }
 
   // Rejection Modal
@@ -125,11 +144,16 @@ export class RequestsPage {
 
   confirmReject() {
     if (this.requestToReject) {
-      const index = this.requests.findIndex(r => r.id === this.requestToReject!.id);
-      if (index !== -1) {
-        this.requests[index].status = 'rejected';
-      }
+      const reason = this.rejectionData.customReason || this.rejectionData.reason || 'غير محدد';
+      this.requestsService.rejectTechnician(this.requestToReject.id, reason).subscribe({
+        next: () => {
+          this.requestToReject!.status = 'rejected';
+          this.closeRejectModal();
+        },
+        error: (err) => {
+          alert('فشل في رفض الطلب');
+        }
+      });
     }
-    this.closeRejectModal();
   }
 }
