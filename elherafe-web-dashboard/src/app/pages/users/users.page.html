@@ -23,18 +23,7 @@
                     />
                 </div>
 
-                <!-- Date Filter -->
-                <div class="flex items-center gap-2">
-                    <input 
-                        type="date" 
-                        class="p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span class="text-gray-500 text-xs">إلى</span>
-                    <input 
-                        type="date" 
-                        class="p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
+                
 
                 <!-- Export Button -->
                 <button class="flex items-center gap-1.5 bg-[#3775FA] hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md transition">
@@ -58,96 +47,64 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Row 1 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">أحمد محمد</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">01012345678</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">ahmed@example.com</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">2024/01/15</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">12</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">منذ 3 أيام</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
-                                <div class="flex items-center gap-1">
-                                    <button class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition" title="حظر">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-                                    </button>
-                                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </button>
-                                </div>
+                        <!-- Loading State -->
+                        <tr *ngIf="loading">
+                            <td colspan="7" class="py-8 text-center text-gray-500">جاري التحميل...</td>
+                        </tr>
+
+                        <!-- Error State -->
+                        <tr *ngIf="error && !loading">
+                            <td colspan="7" class="py-8 text-center text-red-500">
+                                {{ error }}
+                                <button (click)="fetchUsers()" class="mr-2 text-blue-500 underline">إعادة المحاولة</button>
                             </td>
                         </tr>
-                        <!-- Row 2 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">سارة أحمد</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">01198765432</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">sara@example.com</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">2024/02/20</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">8</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">منذ أسبوع</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
-                                <div class="flex items-center gap-1">
-                                    <button class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition" title="حظر">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-                                    </button>
-                                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </button>
-                                </div>
+
+                        <!-- Empty State -->
+                        <tr *ngIf="!loading && !error && users.length === 0">
+                            <td colspan="7" class="py-8 text-center text-gray-500">
+                                لا يوجد مستخدمين
                             </td>
                         </tr>
-                        <!-- Row 3 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">محمد علي</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">01234567890</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">mohamed@example.com</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">2024/03/10</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">5</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">منذ شهر</td>
+
+                        <!-- User Rows -->
+                        <tr *ngFor="let user of users" class="hover:bg-gray-50">
+                            <td class="py-2.5 px-3 border-b border-gray-200">{{ user.name }}</td>
+                            <td class="py-2.5 px-3 border-b border-gray-200">{{ user.phoneNumber }}</td>
+                            <td class="py-2.5 px-3 border-b border-gray-200">{{ user.email }}</td>
+                            <td class="py-2.5 px-3 border-b border-gray-200">{{ user.createdAt ? (user.createdAt | date:'yyyy/MM/dd') : '-' }}</td>
+                            <td class="py-2.5 px-3 border-b border-gray-200">{{ user.transactionsCount || 0 }}</td>
+                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">{{ user.lastTransaction || '-' }}</td>
                             <td class="py-2.5 px-3 border-b border-gray-200">
                                 <div class="flex items-center gap-1">
-                                    <button class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition" title="حظر">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-                                    </button>
-                                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <!-- Row 4 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">فاطمة حسن</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">01567891234</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">fatma@example.com</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">2024/04/05</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">20</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">منذ يومين</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
-                                <div class="flex items-center gap-1">
-                                    <button class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition" title="حظر">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-                                    </button>
-                                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <!-- Row 5 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">عمر خالد</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">01098765123</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">omar@example.com</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">2024/05/18</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">3</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 text-gray-500">منذ ساعة</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
-                                <div class="flex items-center gap-1">
-                                    <button class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition" title="حظر">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-                                    </button>
-                                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
+                                    <button
+                                        *ngIf="!user.isBlocked"
+                                        (click)="blockUser(user)"
+                                        class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition"
+                                        title="Block"
+                                        >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="m4.9 4.9 14.2 14.2"/>
+                                        </svg>
+                                        </button>
+                                        <button
+                                            *ngIf="user.isBlocked"
+                                            (click)="unblockUser(user)"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition"
+                                            title="Unblock"
+                                            >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path d="M9 12l2 2 4-4"/>
+                                            </svg>
+                                            </button>
+
+                                    <button (click)="deleteUser(user.id)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                     </button>
                                 </div>

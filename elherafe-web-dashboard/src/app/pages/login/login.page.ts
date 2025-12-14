@@ -22,12 +22,21 @@ export class LoginPage {
 		console.log('Submitting:', { email: this.email, password: this.password });
 		this.authService.login(this.email, this.password).subscribe({
 			next: (response) => {
-				// Handle successful login, e.g., navigate to dashboard
 				console.log('Login success:', response);
+				
+				// Store the token - adjust based on your API response structure
+				const token = response.token || response.data?.token || response.accessToken;
+				if (token) {
+					localStorage.setItem('authToken', token);
+					console.log('Token stored successfully');
+				} else {
+					console.warn('No token found in response:', response);
+				}
+				
+				// Navigate to dashboard
 				this.router.navigate(['/dashboard-users']);
 			},
 			error: (error) => {
-				// Handle login error, e.g., show error message
 				console.error('Login failed', error);
 				console.error('Error status:', error.status);
 				console.error('Error body:', error.error);
