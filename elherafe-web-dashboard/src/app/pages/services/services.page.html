@@ -15,15 +15,7 @@
             
             <!-- Action Bar -->
             <div class="mt-3 flex items-center gap-3">
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-md">
-                    <input 
-                        type="text" 
-                        placeholder="ابحث عن مهنة..." 
-                        [(ngModel)]="searchQuery"
-                        class="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
+
 
                 <!-- Add Button -->
                 <button (click)="openAddModal()" class="flex items-center gap-1.5 bg-[#3775FA] hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md transition">
@@ -37,13 +29,18 @@
                 @for (service of filteredServices; track service.id) {
                 <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition group">
                     <!-- Service Icon -->
-                    <div class="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-3">
-                        <span class="text-2xl">{{ service.icon }}</span>
-                    </div>
-                    
-                    <!-- Service Name -->
-                    <h3 class="text-center font-medium text-gray-800 text-sm mb-1">{{ service.nameAr }}</h3>
-                    <p class="text-center text-gray-400 text-xs mb-3">{{ service.nameEn }}</p>
+
+                                        <div class="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-3 overflow-hidden">
+                                                <ng-container *ngIf="service.serviceImageURL; else noImg">
+                                                    <img [src]="service.serviceImageURL" alt="صورة المهنة" class="w-full h-full object-cover" />
+                                                </ng-container>
+                                                <ng-template #noImg>
+                                                    <span class="text-2xl">{{ service.icon }}</span>
+                                                </ng-template>
+                                        </div>
+
+                                        <!-- Service Name -->
+                                        <h3 class="text-center font-medium text-gray-800 text-sm mb-1">{{ service.nameAr }}</h3>
                     
                     <!-- Action Buttons -->
                     <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
@@ -85,38 +82,28 @@
         
         <!-- Modal Body -->
         <div class="p-4">
-            <!-- Icon Upload -->
+            <!-- Image Upload -->
             <div class="flex flex-col items-center mb-4">
-                <label class="text-xs text-gray-500 mb-2">أيقونة الخدمة</label>
-                <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-100 transition">
-                    @if (modalService.icon) {
-                        <span class="text-3xl">{{ modalService.icon }}</span>
-                    } @else {
+                <label class="text-xs text-gray-500 mb-2">صورة الخدمة</label>
+                <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center border-2 border-dashed border-blue-300 cursor-pointer hover:bg-blue-100 transition overflow-hidden mb-2">
+                    <ng-container *ngIf="selectedImagePreview; else noImg">
+                        <img [src]="selectedImagePreview" alt="صورة الخدمة" class="w-full h-full object-cover" />
+                    </ng-container>
+                    <ng-template #noImg>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    }
+                    </ng-template>
                 </div>
+                <input type="file" accept="image/*" (change)="onImageSelected($event)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
             </div>
 
             <!-- Arabic Name -->
-            <div class="mb-3">
-                <label class="block text-xs text-gray-500 mb-1">اسم الخدمة (عربي)</label>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-500 mb-1">اسم الخدمة</label>
                 <input 
                     type="text" 
                     [(ngModel)]="modalService.nameAr"
                     placeholder="مثال: سباك"
                     class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-            </div>
-
-            <!-- English Name -->
-            <div class="mb-4">
-                <label class="block text-xs text-gray-500 mb-1">اسم الخدمة (إنجليزي)</label>
-                <input 
-                    type="text" 
-                    [(ngModel)]="modalService.nameEn"
-                    placeholder="Example: Plumber"
-                    class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    dir="ltr"
                 />
             </div>
         </div>

@@ -1,65 +1,87 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
+import { ServicesService } from '../../services/services.service';
 
 interface Service {
-  id: number;
+  id: string;
   icon: string;
   nameAr: string;
-  nameEn: string;
+  serviceImageURL?: string | null;
 }
 
 @Component({
   selector: 'app-services',
-  imports: [HeaderComponent, Sidebar, FormsModule],
+  standalone: true,
+  imports: [HeaderComponent, Sidebar, FormsModule, CommonModule],
   templateUrl: './services.page.html',
-  styleUrl: './services.page.css',
+  styleUrls: ['./services.page.css'],
 })
-export class ServicesPage {
+export class ServicesPage implements OnInit {
+
+  selectedImageFile: File | null = null;
+  selectedImagePreview: string | null = null;
+
   searchQuery = '';
-  
+
   // Modal states
   isAddEditModalOpen = false;
   isDeleteModalOpen = false;
   isEditMode = false;
-  
+
   // Modal data
-  modalService: Service = { id: 0, icon: '', nameAr: '', nameEn: '' };
+  modalService: Service = { id: '', icon: '', nameAr: '' };
   serviceToDelete: Service | null = null;
 
-  // Sample services data
-  services: Service[] = [
-    { id: 1, icon: '🔧', nameAr: 'سباك', nameEn: 'Plumber' },
-    { id: 2, icon: '⚡', nameAr: 'كهربائي', nameEn: 'Electrician' },
-    { id: 3, icon: '🪚', nameAr: 'نجار', nameEn: 'Carpenter' },
-    { id: 4, icon: '🎨', nameAr: 'نقاش', nameEn: 'Painter' },
-    { id: 5, icon: '❄️', nameAr: 'فني تكييف', nameEn: 'AC Technician' },
-    { id: 6, icon: '🧱', nameAr: 'بناء', nameEn: 'Mason' },
-    { id: 7, icon: '🔩', nameAr: 'حداد', nameEn: 'Blacksmith' },
-    { id: 8, icon: '🪟', nameAr: 'فني ألومنيوم', nameEn: 'Aluminum Technician' },
-    { id: 9, icon: '🚿', nameAr: 'فني صرف صحي', nameEn: 'Sanitary Technician' },
-    { id: 10, icon: '📺', nameAr: 'فني إلكترونيات', nameEn: 'Electronics Technician' },
-    { id: 11, icon: '🧹', nameAr: 'عامل نظافة', nameEn: 'Cleaner' },
-    { id: 12, icon: '🏠', nameAr: 'فني ديكور', nameEn: 'Decorator' },
-  ];
+  services: Service[] = [];
+  loading = false;
+  error = '';
+
+  constructor(private servicesService: ServicesService) {}
+
+  ngOnInit() {
+    this.fetchServices();
+  }
+
+  fetchServices() {
+    this.loading = true;
+    this.error = '';
+
+    this.servicesService.getServices().subscribe({
+      next: (res) => {
+        this.services = (res.services || []).map((s: any) => ({
+          id: s.id?.toString() ?? '',
+          icon: '',
+          nameAr: s.name ?? '',
+          serviceImageURL: s.serviceImageURL ?? null,
+        }));
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'فشل في تحميل المهن';
+        this.loading = false;
+      }
+    });
+  }
 
   get filteredServices(): Service[] {
-    if (!this.searchQuery.trim()) {
-      return this.services;
-    }
-    const query = this.searchQuery.toLowerCase();
-    return this.services.filter(
-      s => s.nameAr.includes(this.searchQuery) || 
-           s.nameEn.toLowerCase().includes(query)
+    if (!this.searchQuery.trim()) return this.services;
+    const q = this.searchQuery.trim().toLowerCase();
+    return this.services.filter(s =>
+      s.nameAr && s.nameAr.toLowerCase().includes(q)
     );
   }
 
   // Add Modal
   openAddModal() {
     this.isEditMode = false;
-    this.modalService = { id: 0, icon: '🔧', nameAr: '', nameEn: '' };
+    this.modalService = { id: '', icon: '🔧', nameAr: '' };
     this.isAddEditModalOpen = true;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
   }
 
   // Edit Modal
@@ -67,25 +89,70 @@ export class ServicesPage {
     this.isEditMode = true;
     this.modalService = { ...service };
     this.isAddEditModalOpen = true;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = service.serviceImageURL || null;
   }
 
   closeAddEditModal() {
     this.isAddEditModalOpen = false;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
   }
 
   saveService() {
-    if (this.isEditMode) {
-      // Update existing service
-      const index = this.services.findIndex(s => s.id === this.modalService.id);
-      if (index !== -1) {
-        this.services[index] = { ...this.modalService };
-      }
-    } else {
-      // Add new service
-      const newId = Math.max(...this.services.map(s => s.id)) + 1;
-      this.services.push({ ...this.modalService, id: newId });
+    if (!this.isEditMode && !this.selectedImageFile) {
+      alert('يرجى اختيار صورة الخدمة');
+      return;
     }
-    this.closeAddEditModal();
+
+    const formData = new FormData();
+
+    if (this.isEditMode) {
+      formData.append('service_name', this.modalService.nameAr);
+      if (this.selectedImageFile) {
+        formData.append('service_image', this.selectedImageFile);
+      }
+
+      this.servicesService
+        .updateService(this.modalService.id, formData, true)
+        .subscribe({
+          next: () => {
+            this.fetchServices();
+            this.closeAddEditModal();
+          },
+          error: () => alert('فشل في تعديل المهنة')
+        });
+
+    } else {
+      formData.append('name', this.modalService.nameAr);
+      if (this.selectedImageFile) {
+        formData.append('ServiceImage', this.selectedImageFile);
+      }
+
+      this.servicesService
+        .addService(formData, true)
+        .subscribe({
+          next: () => {
+            this.fetchServices();
+            this.closeAddEditModal();
+          },
+          error: () => alert('فشل في إضافة المهنة')
+        });
+    }
+  }
+
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      this.selectedImageFile = input.files[0];
+
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.selectedImagePreview = e.target.result;
+      };
+      reader.readAsDataURL(this.selectedImageFile);
+    }
   }
 
   // Delete Modal
@@ -100,9 +167,14 @@ export class ServicesPage {
   }
 
   confirmDelete() {
-    if (this.serviceToDelete) {
-      this.services = this.services.filter(s => s.id !== this.serviceToDelete!.id);
-    }
-    this.closeDeleteModal();
+    if (!this.serviceToDelete) return;
+
+    this.servicesService.deleteService(this.serviceToDelete.id).subscribe({
+      next: () => {
+        this.closeDeleteModal();
+        this.fetchServices();
+      },
+      error: () => alert('فشل في حذف المهنة')
+    });
   }
 }

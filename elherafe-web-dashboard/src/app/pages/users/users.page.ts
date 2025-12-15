@@ -1,21 +1,35 @@
+  
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { UsersService } from '../../services/users.service';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, CommonModule],
+  imports: [HeaderComponent, Sidebar, CommonModule, FormsModule],
   templateUrl: './users.page.html',
   styleUrl: './users.page.css',
 })
 export class UsersPage implements OnInit {
 
+
   users: any[] = [];
   loading = true;
   error = '';
+  searchQuery = '';
+
+  get filteredUsers() {
+    if (!this.searchQuery.trim()) return this.users;
+    const q = this.searchQuery.trim().toLowerCase();
+    return this.users.filter(u =>
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.phoneNumber && u.phoneNumber.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q))
+    );
+  }
 
   constructor(private usersService: UsersService, private cdr: ChangeDetectorRef) { }
 
@@ -61,8 +75,9 @@ export class UsersPage implements OnInit {
   }
 
 
+
   blockUser(user: any) {
-    // Set suspendTo to 7 days from now
+    if (!confirm('هل أنت متأكد أنك تريد حظر هذا المستخدم؟')) return;
     const now = new Date();
     const suspendTo = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const payload = {
@@ -73,12 +88,11 @@ export class UsersPage implements OnInit {
     this.usersService.blockOrUnblockUser(user.id, payload)
       .subscribe({
         next: () => {
-          user.isBlocked = true; // Update UI immediately
+          this.fetchUsers();
         },
         error: (err) => {
-          // If already blocked, treat as success
           if (err?.error?.errorMessage === 'المستخدم محظور مؤقتا بالفعل') {
-            user.isBlocked = true;
+            this.fetchUsers();
             return;
           }
           console.error(err);
@@ -87,20 +101,22 @@ export class UsersPage implements OnInit {
       });
   }
 
-unblockUser(user: any) {
-  const payload = {
-    isBlocked: false
-  };
-
-  this.usersService.blockOrUnblockUser(user.id, payload)
-    .subscribe({
-      next: () => {
-        user.isBlocked = false;
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Failed to unblock user');
-      }
-    });
+  unblockUser(user: any) {
+    if (!confirm('هل أنت متأكد أنك تريد رفع الحظر عن هذا المستخدم؟')) return;
+    const payload = {
+      isBlocked: false
+    };
+    this.usersService.blockOrUnblockUser(user.id, payload)
+      .subscribe({
+        next: () => {
+          this.fetchUsers();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Failed to unblock user');
+        }
+      });
   }
+  
+
 }
