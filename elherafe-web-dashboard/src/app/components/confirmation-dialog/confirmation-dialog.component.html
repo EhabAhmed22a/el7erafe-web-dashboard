@@ -1,0 +1,24 @@
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" dir="rtl">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">{{ title }}</h2>
+      <p class="mt-2 text-sm text-gray-600" *ngIf="message">{{ message }}</p>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button
+        type="button"
+        [ngClass]="cancelClasses"
+        (click)="onCancel()"
+      >
+        {{ cancelLabel }}
+      </button>
+      <button
+        type="button"
+        [ngClass]="confirmClasses"
+        (click)="onConfirm()"
+      >
+        {{ confirmLabel }}
+      </button>
+    </div>
+  </div>
+</div>

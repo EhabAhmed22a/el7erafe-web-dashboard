@@ -1,0 +1,99 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.pagination-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .pagination-shell {
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+  }
+}
+
+.range-text {
+  font-size: 0.8rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #6b7280;
+}
+
+.page-size-select {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  min-width: 4rem;
+}
+
+.page-size-select:focus {
+  outline: 2px solid #3775fa;
+  border-color: #3775fa;
+}
+
+.pager {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  color: #4b5563;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.pagination-btn:hover {
+  background-color: #f9fafb;
+}
+
+.pagination-btn.active {
+  background-color: #ffffff;
+  border-color: rgba(55, 117, 250, 1);
+  color: #001eff;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(55, 117, 250, 0.1);
+}
+
+.pagination-btn.disabled,
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  background-color: #ffffff;
+}
+
+.ellipsis {
+  padding: 0 0.5rem;
+  color: #9ca3af;
+}

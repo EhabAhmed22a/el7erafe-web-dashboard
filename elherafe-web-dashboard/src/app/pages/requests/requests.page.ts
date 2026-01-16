@@ -3,6 +3,8 @@ import { RequestsService } from '../../services/requests.service';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
+import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
 
 interface TechnicianRequest {
   id: string;
@@ -24,7 +26,8 @@ interface RejectionData {
 
 @Component({
   selector: 'app-requests',
-  imports: [HeaderComponent, Sidebar, FormsModule],
+  standalone: true,
+  imports: [HeaderComponent, Sidebar, FormsModule, PaginationComponent],
   templateUrl: './requests.page.html',
   styleUrl: './requests.page.css',
 })
@@ -51,6 +54,19 @@ export class RequestsPage implements OnInit {
   requests: TechnicianRequest[] = [];
   loading = false;
   error = '';
+  pageNumber = 1;
+  pageSize = 5;
+  totalItems = 0;
+  hasExactTotal = true;
+  hasNextPage = false;
+  readonly pageSizeOptions = [5, 10, 20, 50];
+
+  private readonly statusParamMap: Record<'all' | 'pending' | 'approved' | 'rejected', number | null> = {
+    all: null,
+    pending: 1,
+    approved: null,
+    rejected: null
+  };
 
   constructor(private requestsService: RequestsService) {}
 
@@ -58,19 +74,52 @@ export class RequestsPage implements OnInit {
     this.fetchRequests();
   }
 
-  fetchRequests() {
+  fetchRequests(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {
+    this.pageNumber = pageNumber;
+    this.pageSize = pageSize;
     this.loading = true;
     this.error = '';
-    this.requestsService.getTechnicianRequests(1).subscribe({
+    const statusFilter = this.statusParamMap[this.activeTab];
+
+    this.requestsService.getTechnicianRequests(statusFilter, pageNumber, pageSize).subscribe({
       next: (res) => {
-        this.requests = res.data || res || [];
+        const payload = extractPaginatedPayload<TechnicianRequest>(res, ['requests', 'data']);
+        if (pageNumber > 1 && payload.items.length === 0) {
+          this.pageNumber = pageNumber - 1;
+          this.hasExactTotal = false;
+          this.hasNextPage = false;
+          this.loading = false;
+          return;
+        }
+        this.requests = payload.items;
+        const pagination = buildPaginationState(payload, pageNumber, pageSize);
+        this.totalItems = pagination.totalItems;
+        this.hasExactTotal = pagination.hasExactTotal;
+        this.hasNextPage = pagination.hasNextPage;
         this.loading = false;
       },
       error: (err) => {
         this.error = 'فشل في تحميل الطلبات';
         this.loading = false;
+        this.hasNextPage = false;
       }
     });
+  }
+
+  selectTab(tab: 'all' | 'pending' | 'approved' | 'rejected') {
+    if (this.activeTab === tab) {
+      return;
+    }
+    this.activeTab = tab;
+    this.fetchRequests(1, this.pageSize);
+  }
+
+  onPageChange(page: number) {
+    this.fetchRequests(page, this.pageSize);
+  }
+
+  onPageSizeChange(size: number) {
+    this.fetchRequests(1, size);
   }
 
   get pendingCount(): number {

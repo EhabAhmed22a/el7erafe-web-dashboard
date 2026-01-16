@@ -55,6 +55,21 @@
                 }
             </div>
 
+            @if (!error && totalItems > 0) {
+            <app-pagination
+                class="mt-4"
+                [pageNumber]="pageNumber"
+                [pageSize]="pageSize"
+                [totalItems]="totalItems"
+                [pageSizeOptions]="pageSizeOptions"
+                [exactTotal]="hasExactTotal"
+                [hasNextPage]="hasNextPage"
+                [loading]="loading"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+            ></app-pagination>
+            }
+
             <!-- Empty State -->
             @if (filteredServices.length === 0) {
             <div class="mt-12 text-center text-gray-400">

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -13,24 +13,22 @@ export class ServicesService {
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      console.warn('[ServicesService] No authToken found in localStorage');
-    } else {
-      console.log('[ServicesService] Using authToken:', token);
-    }
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    console.log('[ServicesService] Request headers:', headers);
     return headers;
   }
 
-  getServices(pageNumber: number = 1, pageSize: number = 5): Observable<any> {
-    const url = `${this.apiUrl}/api/services/?pageNumber=${pageNumber}&pageSize=${pageSize}`;
-    const headers = this.getHeaders();
-    console.log('[ServicesService] GET', url, headers);
-    return this.http.get<any>(url, { headers });
+  getServices(pageNumber: number = 1, pageSize: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+
+    return this.http.get<any>(`${this.apiUrl}/api/services`, {
+      headers: this.getHeaders(),
+      params
+    });
   }
 
 

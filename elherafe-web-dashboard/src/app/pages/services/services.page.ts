@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { ServicesService } from '../../services/services.service';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
+import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
 
 interface Service {
   id: string;
@@ -16,7 +18,7 @@ interface Service {
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, FormsModule, CommonModule],
+  imports: [HeaderComponent, Sidebar, FormsModule, CommonModule, PaginationComponent],
   templateUrl: './services.page.html',
   styleUrls: ['./services.page.css'],
 })
@@ -39,30 +41,55 @@ export class ServicesPage implements OnInit {
   services: Service[] = [];
   loading = false;
   error = '';
+  pageNumber = 1;
+  pageSize = 12;
+  totalItems = 0;
+  hasExactTotal = true;
+  hasNextPage = false;
+  readonly pageSizeOptions = [6, 12, 24, 48];
 
-  constructor(private servicesService: ServicesService) {}
+  constructor(private servicesService: ServicesService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.fetchServices();
   }
 
-  fetchServices() {
+  fetchServices(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {
+    this.pageNumber = pageNumber;
+    this.pageSize = pageSize;
     this.loading = true;
     this.error = '';
 
-    this.servicesService.getServices().subscribe({
+    this.servicesService.getServices(pageNumber, pageSize).subscribe({
       next: (res) => {
-        this.services = (res.services || []).map((s: any) => ({
+        const payload = extractPaginatedPayload<Service>(res, ['services', 'data']);
+        const rawItems = payload.items || [];
+        if (pageNumber > 1 && rawItems.length === 0) {
+          this.pageNumber = pageNumber - 1;
+          this.hasExactTotal = false;
+          this.hasNextPage = false;
+          this.loading = false;
+          this.cdr.markForCheck();
+          return;
+        }
+        this.services = rawItems.map((s: any) => ({
           id: s.id?.toString() ?? '',
           icon: '',
           nameAr: s.name ?? '',
           serviceImageURL: s.serviceImageURL ?? null,
         }));
+        const pagination = buildPaginationState(payload, pageNumber, pageSize);
+        this.totalItems = pagination.totalItems;
+        this.hasExactTotal = pagination.hasExactTotal;
+        this.hasNextPage = pagination.hasNextPage;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'فشل في تحميل المهن';
         this.loading = false;
+        this.hasNextPage = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -117,7 +144,7 @@ export class ServicesPage implements OnInit {
         .updateService(this.modalService.id, formData, true)
         .subscribe({
           next: () => {
-            this.fetchServices();
+            this.fetchServices(this.pageNumber, this.pageSize);
             this.closeAddEditModal();
           },
           error: () => alert('فشل في تعديل المهنة')
@@ -133,7 +160,7 @@ export class ServicesPage implements OnInit {
         .addService(formData, true)
         .subscribe({
           next: () => {
-            this.fetchServices();
+            this.fetchServices(this.pageNumber, this.pageSize);
             this.closeAddEditModal();
           },
           error: () => alert('فشل في إضافة المهنة')
@@ -172,9 +199,18 @@ export class ServicesPage implements OnInit {
     this.servicesService.deleteService(this.serviceToDelete.id).subscribe({
       next: () => {
         this.closeDeleteModal();
-        this.fetchServices();
+        const targetPage = this.services.length === 1 && this.pageNumber > 1 ? this.pageNumber - 1 : this.pageNumber;
+        this.fetchServices(targetPage, this.pageSize);
       },
       error: () => alert('فشل في حذف المهنة')
     });
+  }
+
+  onPageChange(page: number) {
+    this.fetchServices(page, this.pageSize);
+  }
+
+  onPageSizeChange(size: number) {
+    this.fetchServices(1, size);
   }
 }

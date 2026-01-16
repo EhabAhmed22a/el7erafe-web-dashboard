@@ -7,7 +7,12 @@
             <p class="text-gray-500 mt-1 text-xs">كل بيانات الفنيين، وثائقهم، وحالة حسابهم في مكان واحد</p>
             <div class="mt-3 flex items-center gap-3 flex-wrap">
                 <div class="flex-1 min-w-[200px]">
-                    <input type="text" placeholder="ابحث عن فني..." class="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input
+                        type="text"
+                        placeholder="ابحث عن فني..."
+                        [(ngModel)]="searchQuery"
+                        class="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
                 
                 <button class="flex items-center gap-1.5 bg-[#3775FA] hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md transition">
@@ -15,7 +20,6 @@
                     <span>تصدير</span>
                 </button>
             </div>
-            <p class="text-xs text-red-500">DEBUG: loading={{ loading }} | error={{ error }} | technicians.length={{ technicians.length }}</p>
             <div class="mt-4 bg-white rounded-lg overflow-hidden border">
                 <table class="w-full text-sm">
                     <thead>
@@ -39,7 +43,7 @@
                         <tr *ngIf="!loading && !error && technicians.length === 0">
                             <td colspan="7" class="py-8 text-center text-gray-500">لا يوجد فنيين</td>
                         </tr>
-                        <tr *ngFor="let tech of technicians" class="hover:bg-gray-50">
+                        <tr *ngFor="let tech of filteredTechnicians" class="hover:bg-gray-50">
                             <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.name }}</td>
                             <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.phone }}</td>
                             <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.serviceType || '-' }}</td>
@@ -86,6 +90,20 @@
                     </tbody>
                 </table>
             </div>
+
+            <app-pagination
+                class="mt-4"
+                *ngIf="!error && totalItems > 0"
+                [pageNumber]="pageNumber"
+                [pageSize]="pageSize"
+                [totalItems]="totalItems"
+                [pageSizeOptions]="pageSizeOptions"
+                [exactTotal]="hasExactTotal"
+                [hasNextPage]="hasNextPage"
+                [loading]="loading"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+            ></app-pagination>
         </main>
     </div>
 </div>
@@ -134,3 +152,14 @@
         </div>
     </div>
 </div>
+
+<app-confirmation-dialog
+    *ngIf="confirmDialog.open"
+    [title]="confirmDialog.title"
+    [message]="confirmDialog.message"
+    [confirmLabel]="confirmDialog.confirmLabel"
+    [cancelLabel]="confirmDialog.cancelLabel"
+    [variant]="confirmDialog.variant"
+    (confirm)="handleConfirmDialog()"
+    (cancel)="closeConfirmDialog()"
+></app-confirmation-dialog>

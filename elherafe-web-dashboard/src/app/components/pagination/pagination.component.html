@@ -1,0 +1,74 @@
+<div class="pagination-shell" dir="rtl">
+  <div class="range-text">
+    <ng-container *ngIf="totalItems > 0; else emptyRange">
+      <ng-container *ngIf="exactTotal; else approximateRange">
+        <span>عرض {{ pageStart }}-{{ pageEnd }} من {{ totalItems }} عنصر</span>
+      </ng-container>
+      <ng-template #approximateRange>
+        <span>عرض {{ pageStart }}-{{ pageEnd }}</span>
+      </ng-template>
+    </ng-container>
+    <ng-template #emptyRange>
+      <span>لا توجد نتائج متاحة</span>
+    </ng-template>
+  </div>
+
+  <div class="controls">
+    <!--
+    <label *ngIf="showPageSizeSelector" class="page-size">
+      <span>عدد الصفوف:</span>
+      <select
+        class="page-size-select"
+        [value]="pageSize"
+        (change)="onPageSizeSelect($event)"
+      >
+        <option *ngFor="let size of pageSizeOptions" [value]="size">
+          {{ size }}
+        </option>
+      </select>
+    </label>
+    -->
+
+    <div class="pager">
+      <button
+        type="button"
+        class="pagination-btn"
+        [class.disabled]="!canGoPrev"
+        (click)="prevPage()"
+        [disabled]="!canGoPrev"
+        aria-label="الصفحة السابقة"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <ng-container *ngFor="let entry of paginationSequence; let idx = index">
+        <span *ngIf="entry === 'ellipsis'" class="ellipsis">...</span>
+        <button
+          *ngIf="entry !== 'ellipsis'"
+          type="button"
+          class="pagination-btn"
+          [class.active]="entry === pageNumber"
+          (click)="goToPage(entry)"
+          [disabled]="loading || entry === pageNumber"
+        >
+          {{ entry }}
+        </button>
+      </ng-container>
+
+      <button
+        type="button"
+        class="pagination-btn"
+        [class.disabled]="!canGoNext"
+        (click)="nextPage()"
+        [disabled]="!canGoNext"
+        aria-label="الصفحة التالية"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
