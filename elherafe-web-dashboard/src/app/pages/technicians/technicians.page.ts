@@ -51,12 +51,21 @@ export class TechniciansPage implements OnInit {
   isModalOpen = false;
   selectedTechnician: any = null;
   selectedDocType: 'front' | 'back' | 'criminal' = 'front';
+  sidebarOpen = false;
 
   constructor(private techniciansService: TechniciansService, private cdr: ChangeDetectorRef) { }
 
 
   ngOnInit() {
     this.fetchTechnicians();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   openDocumentModal(technician: any) {

@@ -28,6 +28,7 @@ export class ServicesPage implements OnInit {
   selectedImagePreview: string | null = null;
 
   searchQuery = '';
+  sidebarOpen = false;
 
   // Modal states
   isAddEditModalOpen = false;
@@ -52,6 +53,14 @@ export class ServicesPage implements OnInit {
 
   ngOnInit() {
     this.fetchServices();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   fetchServices(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {

@@ -15,9 +15,14 @@ import { FormsModule } from '@angular/forms';
 export class LoginPage {
 	email: string = '';
 	password: string = '';
+	showPassword = false;
 
 	constructor(private authService: AuthService, private router: Router) {}
 	
+	togglePasswordVisibility() {
+		this.showPassword = !this.showPassword;
+	}
+
 	onSubmit() {
 		console.log('Submitting:', { email: this.email, password: this.password });
 		this.authService.login(this.email, this.password).subscribe({

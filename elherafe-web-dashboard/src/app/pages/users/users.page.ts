@@ -47,6 +47,7 @@ export class UsersPage implements OnInit {
     variant: 'primary'
   };
   private confirmDialogAction: (() => void) | null = null;
+  sidebarOpen = false;
 
   get filteredUsers() {
     if (!this.searchQuery.trim()) return this.users;
@@ -62,6 +63,14 @@ export class UsersPage implements OnInit {
 
   ngOnInit() {
     this.fetchUsers();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   fetchUsers(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {

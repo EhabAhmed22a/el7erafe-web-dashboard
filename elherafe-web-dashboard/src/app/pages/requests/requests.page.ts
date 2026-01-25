@@ -34,6 +34,7 @@ interface RejectionData {
 export class RequestsPage implements OnInit {
   searchQuery = '';
   activeTab: 'all' | 'pending' | 'approved' | 'rejected' = 'pending';
+  sidebarOpen = false;
   
   // Document Modal
   isDocumentModalOpen = false;
@@ -72,6 +73,14 @@ export class RequestsPage implements OnInit {
 
   ngOnInit() {
     this.fetchRequests();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   fetchRequests(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {

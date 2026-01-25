@@ -1,19 +1,31 @@
-<header class="w-full border-b-0.5 bg-white shadow-sm px-6 py-4 flex items-center justify-between" dir="rtl">
+<header class="w-full border-b-0.5 bg-white shadow-sm px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between" dir="rtl">
     
     <!-- Right Side: Logo + Website Name -->
-    <div class="flex items-center gap-3">
-        <img class="w-10 h-10" src="/assets/logos/logo-blue-wt.svg" 
+    <div class="flex items-center gap-2 sm:gap-3">
+        <button
+            type="button"
+            class="lg:hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#3775FA] hover:border-[#3775FA] transition"
+            aria-label="فتح القائمة الجانبية"
+            (click)="triggerMenuToggle()"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+        </button>
+        <img class="w-8 h-8 sm:w-10 sm:h-10" src="/assets/logos/logo-blue-wt.svg" 
              onerror="this.onerror=null; this.src='https://placehold.co/40x40/3775FA/ffffff?text=H'" 
              alt="شعار الحرفي">
-        <span class="text-xl text-[#3775FA]">الحرفي</span>
+        <span class="text-lg sm:text-xl text-[#3775FA]">الحرفي</span>
     </div>
 
     <!-- Left Side: Actions + User -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
         <button
             type="button"
             aria-label="الإشعارات"
-            class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#3775FA] transition"
+            class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#3775FA] transition"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -21,8 +33,8 @@
             </svg>
         </button>
 
-        <div class="flex items-center gap-2 border border-gray-200 rounded-full pl-2 pr-1 py-1">
-            <div class="w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+        <div class="flex items-center gap-1.5 sm:gap-2 border border-gray-200 rounded-full pl-2 pr-1 py-1">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-gray-300">
                 <img
                     src="/assets/icons/default-avatar.svg"
                     alt="صورة المستخدم"
@@ -30,7 +42,7 @@
                     onerror="this.onerror=null; this.src='https://placehold.co/80x80/f3f4f6/94a3b8?text=👤';"
                 />
             </div>
-            <span class="font-semibold text-gray-700 text-sm">أحمد محمد</span>
+            <span class="font-semibold text-gray-700 text-xs sm:text-sm">أحمد محمد</span>
         </div>
     </div>
 
