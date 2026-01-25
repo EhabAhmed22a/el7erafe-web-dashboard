@@ -9,6 +9,8 @@ import { TechniciansService } from '../../services/technicians.service';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { ConfirmationDialogComponent, ConfirmationVariant } from '../../components/confirmation-dialog/confirmation-dialog.component';
 import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
+import { NotificationService } from '../../services/notification.service';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 
 type ConfirmDialogState = {
   open: boolean;
@@ -19,10 +21,25 @@ type ConfirmDialogState = {
   variant: ConfirmationVariant;
 };
 
+type BlockDurationType = 'temporary' | 'permanent';
+
+type BlockModalState = {
+  open: boolean;
+  technician: any | null;
+  durationType: BlockDurationType;
+  days: number;
+};
+
+type BlockStatusPayload = {
+  isBlocked: boolean;
+  suspendTo?: string;
+  suspensionReason?: string;
+};
+
 @Component({
   selector: 'app-technicians',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, CommonModule, FormsModule, PaginationComponent, ConfirmationDialogComponent],
+  imports: [HeaderComponent, Sidebar, CommonModule, FormsModule, PaginationComponent, ConfirmationDialogComponent, LoadingSpinnerComponent],
   templateUrl: './technicians.page.html',
   styleUrl: './technicians.page.css',
 })
@@ -51,9 +68,15 @@ export class TechniciansPage implements OnInit {
   isModalOpen = false;
   selectedTechnician: any = null;
   selectedDocType: 'front' | 'back' | 'criminal' = 'front';
+  blockModal: BlockModalState = {
+    open: false,
+    technician: null,
+    durationType: 'temporary',
+    days: 7
+  };
   sidebarOpen = false;
 
-  constructor(private techniciansService: TechniciansService, private cdr: ChangeDetectorRef) { }
+  constructor(private techniciansService: TechniciansService, private cdr: ChangeDetectorRef, private notificationService: NotificationService) { }
 
 
   ngOnInit() {
@@ -86,7 +109,8 @@ export class TechniciansPage implements OnInit {
     this.error = '';
     this.techniciansService.getTechnicians(pageNumber, pageSize).subscribe({
       next: (response: any) => {
-        const payload = extractPaginatedPayload<any>(response, ['technicians', 'data']);
+        const payloadSource = response?.data?.technicians ?? response?.technicians ?? response;
+        const payload = extractPaginatedPayload<any>(payloadSource, ['technicians', 'data']);
         const technicians = payload.items;
 
         if (pageNumber > 1 && technicians.length === 0) {
@@ -129,53 +153,89 @@ export class TechniciansPage implements OnInit {
           next: () => {
             const targetPage = this.technicians.length === 1 && this.pageNumber > 1 ? this.pageNumber - 1 : this.pageNumber;
             this.fetchTechnicians(targetPage, this.pageSize);
+            this.notificationService.success('تم حذف الفني بنجاح');
           },
           error: () => {
             alert('فشل في حذف الفني');
+            this.notificationService.error('تعذر حذف الفني');
           }
         });
       }
     );
   }
 
-  blockTechnician(tech: any) {
-    // Set suspendTo to 7 days from now
-    const now = new Date();
-    const suspendTo = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    const payload = {
+  openBlockModal(tech: any) {
+    this.blockModal = {
+      open: true,
+      technician: tech,
+      durationType: 'temporary',
+      days: 7
+    };
+  }
+
+  closeBlockModal() {
+    this.blockModal = {
+      open: false,
+      technician: null,
+      durationType: 'temporary',
+      days: 7
+    };
+  }
+
+  confirmBlockModal() {
+    if (!this.blockModal.technician) {
+      return;
+    }
+    const payload: BlockStatusPayload = {
       isBlocked: true,
-      suspendTo,
       suspensionReason: 'Violation of terms'
     };
+    if (this.blockModal.durationType === 'temporary') {
+      const now = new Date();
+      const suspendTo = new Date(now.getTime() + this.blockModal.days * 24 * 60 * 60 * 1000).toISOString();
+      payload.suspendTo = suspendTo;
+    }
+    this.sendBlockRequest(this.blockModal.technician, payload);
+  }
+
+  private sendBlockRequest(tech: any, payload: BlockStatusPayload) {
     this.techniciansService.blockOrUnblockTechnician(tech.id, payload)
       .subscribe({
         next: () => {
-          tech.isBlocked = true; // Update UI immediately
+          tech.isBlocked = true;
+          this.notificationService.success(
+            this.blockModal.durationType === 'temporary' ? 'تم حظر الفني مؤقتاً' : 'تم حظر الفني بشكل دائم'
+          );
+          this.closeBlockModal();
         },
         error: (err) => {
-          // If already blocked, treat as success
           if (err?.error?.errorMessage === 'المستخدم محظور مؤقتا بالفعل') {
             tech.isBlocked = true;
+            this.notificationService.success('الفني محظور بالفعل');
+            this.closeBlockModal();
             return;
           }
           console.error(err);
           alert('Failed to block technician: ' + (err?.error?.errorMessage || ''));
+          this.notificationService.error('تعذر حظر الفني');
         }
       });
   }
 
   unblockTechnician(tech: any) {
-    const payload = {
+    const payload: BlockStatusPayload = {
       isBlocked: false
     };
     this.techniciansService.blockOrUnblockTechnician(tech.id, payload)
       .subscribe({
         next: () => {
           tech.isBlocked = false;
+          this.notificationService.success('تم رفع الحظر عن الفني');
         },
         error: (err) => {
           console.error(err);
           alert('Failed to unblock technician: ' + (err?.error?.errorMessage || ''));
+          this.notificationService.error('تعذر رفع الحظر');
         }
       });
   }

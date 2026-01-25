@@ -3,6 +3,14 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface RejectTechnicianPayload {
+  id: string;
+  rejectionReason: string;
+  is_front_rejected: boolean;
+  is_back_rejected: boolean;
+  is_criminal_rejected: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,16 +43,21 @@ export class RequestsService {
   }
 
   approveTechnician(userId: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/admin/technicians/approve?userId=${userId}`, {}, {
+    const params = new HttpParams().set('userId', userId);
+    return this.http.patch<any>(`${this.apiUrl}/api/admin/technicians/approve`, {}, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
+  rejectTechnician(payload: RejectTechnicianPayload): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/admin/technician/reject`, payload, {
       headers: this.getHeaders()
     });
   }
 
-  rejectTechnician(userId: string, reason: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/admin/technician/reject`, {
-      userId,
-      reason
-    }, {
+  getRejectionReasons(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/admin/rejection-reason`, {
       headers: this.getHeaders()
     });
   }

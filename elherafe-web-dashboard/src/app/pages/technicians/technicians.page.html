@@ -21,7 +21,7 @@
             <h1 class="text-xl text-blue-700">الفنيين</h1>
             <p class="text-gray-500 mt-1 text-xs">كل بيانات الفنيين، وثائقهم، وحالة حسابهم في مكان واحد</p>
             <div class="mt-3 flex items-center gap-3 flex-wrap">
-                <div class="flex-1 min-w-[200px]">
+                <div class="w-full max-w-[200px]">
                     <input
                         type="text"
                         placeholder="ابحث عن فني..."
@@ -35,24 +35,24 @@
                     <span>تصدير</span>
                 </button>
             </div>
-            <div class="mt-4 bg-white rounded-lg border">
-                <div class="overflow-x-auto">
-                    <table class="min-w-[860px] w-full text-sm">
+            <div class="mt-4 bg-white rounded-lg border border-blue-700 overflow-hidden">
+                @if (loading) {
+                    <app-loading-spinner message="جاري تحميل الفنيين..."></app-loading-spinner>
+                } @else {
+                    <div class="overflow-x-auto">
+                    <table class="min-w-[860px] w-full text-sm border-separate border-spacing-0">
                     <thead>
-                        <tr class="bg-gray-100 text-gray-600 text-xs">
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">الاسم</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">رقم التلفون</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">الحرفة</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">المحافظة / المدينة</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">الرقم القومي</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">وثائق</th>
-                            <th class="py-2.5 px-3 text-right font-medium border-b border-gray-200">الإجراءات</th>
+                        <tr class="bg-gray-50 text-gray-700 text-xs border-b border-blue-700">
+                            <th class="py-2.5 px-3 text-right font-medium">الاسم</th>
+                            <th class="py-2.5 px-3 text-right font-medium">رقم التلفون</th>
+                            <th class="py-2.5 px-3 text-right font-medium">الحرفة</th>
+                            <th class="py-2.5 px-3 text-right font-medium">المحافظة / المدينة</th>
+                            <th class="py-2.5 px-3 text-right font-medium">الرقم القومي</th>
+                            <th class="py-2.5 px-3 text-right font-medium">وثائق</th>
+                            <th class="py-2.5 px-3 text-right font-medium">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr *ngIf="loading">
-                            <td colspan="7" class="py-8 text-center text-gray-500">جاري التحميل...</td>
-                        </tr>
+                    <tbody class="bg-white divide-y divide-blue-700">
                         <tr *ngIf="error && !loading">
                             <td colspan="7" class="py-8 text-center text-red-500">{{ error }}</td>
                         </tr>
@@ -60,12 +60,12 @@
                             <td colspan="7" class="py-8 text-center text-gray-500">لا يوجد فنيين</td>
                         </tr>
                         <tr *ngFor="let tech of filteredTechnicians" class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.name }}</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.phone }}</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.serviceType || '-' }}</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">{{ tech.governorate }} / {{ tech.city }}</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200 font-mono text-xs">-</td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
+                            <td class="py-2.5 px-3">{{ tech.name }}</td>
+                            <td class="py-2.5 px-3">{{ tech.phone }}</td>
+                            <td class="py-2.5 px-3">{{ tech.serviceType || '-' }}</td>
+                            <td class="py-2.5 px-3">{{ tech.governorate }} / {{ tech.city }}</td>
+                            <td class="py-2.5 px-3 font-mono text-xs">-</td>
+                            <td class="py-2.5 px-3">
                                 <button class="flex items-center gap-1 text-[#3775FA] hover:text-blue-700 transition"
                                         [disabled]="!tech.faceIdImage && !tech.backIdImage && !tech.criminalRecordImage"
                                         (click)="openDocumentModal(tech)">
@@ -73,11 +73,11 @@
                                     <span class="text-xs">عرض</span>
                                 </button>
                             </td>
-                            <td class="py-2.5 px-3 border-b border-gray-200">
+                            <td class="py-2.5 px-3">
                                 <div class="flex items-center gap-1">
                                     <button
                                         *ngIf="!tech.isBlocked"
-                                        (click)="blockTechnician(tech)"
+                                        (click)="openBlockModal(tech)"
                                         class="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-md transition"
                                         title="حظر"
                                     >
@@ -106,6 +106,7 @@
                     </tbody>
                     </table>
                 </div>
+                }
             </div>
 
             <app-pagination
@@ -122,12 +123,39 @@
                 (pageSizeChange)="onPageSizeChange($event)"
             ></app-pagination>
         </main>
+        </div>
+ </div>
+
+@if (blockModal.open) {
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6" dir="rtl">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">إعدادات الحظر</h2>
+        <p class="text-sm text-gray-500 mb-4">اختر نوع الحظر للمدد المؤقتة أو الحظر الدائم.</p>
+        <div class="space-y-3">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" class="text-blue-600" name="blockDuration" value="temporary" [(ngModel)]="blockModal.durationType">
+                <span>حظر مؤقت</span>
+            </label>
+            <div class="pl-6" *ngIf="blockModal.durationType === 'temporary'">
+                <label class="block text-xs text-gray-500 mb-1">عدد الأيام</label>
+                <input type="number" min="1" max="90" [(ngModel)]="blockModal.days" class="w-24 border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" class="text-blue-600" name="blockDuration" value="permanent" [(ngModel)]="blockModal.durationType">
+                <span>حظر دائم</span>
+            </label>
+        </div>
+        <div class="mt-6 flex justify-end gap-2">
+            <button class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md" (click)="closeBlockModal()">إلغاء</button>
+            <button class="px-4 py-2 text-sm bg-[#3775FA] text-white rounded-md" (click)="confirmBlockModal()">تأكيد</button>
+        </div>
     </div>
 </div>
+}
 
 <!-- Document Modal -->
 <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.10);">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative z-10">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative z-10">
         <button (click)="closeDocumentModal()" class="absolute top-2 left-2 text-gray-400 hover:text-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -142,7 +170,7 @@
                 <ng-container [ngSwitch]="selectedDocType">
                     <ng-container *ngSwitchCase="'front'">
                         <ng-container *ngIf="selectedTechnician.faceIdImage; else noFront">
-                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.faceIdImage" alt="صورة الوجه" class="max-w-full max-h-80 rounded border" />
+                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.faceIdImage" alt="صورة الوجه" class="max-w-full max-h-[520px] rounded border" />
                         </ng-container>
                         <ng-template #noFront>
                             <p class="text-gray-400">لا توجد صورة للوجه</p>
@@ -150,7 +178,7 @@
                     </ng-container>
                     <ng-container *ngSwitchCase="'back'">
                         <ng-container *ngIf="selectedTechnician.backIdImage; else noBack">
-                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.backIdImage" alt="صورة الظهر" class="max-w-full max-h-80 rounded border" />
+                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.backIdImage" alt="صورة الظهر" class="max-w-full max-h-[520px] rounded border" />
                         </ng-container>
                         <ng-template #noBack>
                             <p class="text-gray-400">لا توجد صورة للظهر</p>
@@ -158,7 +186,7 @@
                     </ng-container>
                     <ng-container *ngSwitchCase="'criminal'">
                         <ng-container *ngIf="selectedTechnician.criminalRecordImage; else noCriminal">
-                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.criminalRecordImage" alt="فيش جنائي" class="max-w-full max-h-80 rounded border" />
+                            <img [src]="environment.apiUrl + '/api/Files/technician/' + selectedTechnician.criminalRecordImage" alt="فيش جنائي" class="max-w-full max-h-[520px] rounded border" />
                         </ng-container>
                         <ng-template #noCriminal>
                             <p class="text-gray-400">لا يوجد فيش جنائي</p>

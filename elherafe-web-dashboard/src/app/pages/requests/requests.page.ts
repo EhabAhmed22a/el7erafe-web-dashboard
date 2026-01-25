@@ -1,19 +1,31 @@
 import { Component, OnInit } from '@angular/core';
-import { RequestsService } from '../../services/requests.service';
+import { RequestsService, RejectTechnicianPayload } from '../../services/requests.service';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../components/header/header.component';
 import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
+import { NotificationService } from '../../services/notification.service';
+import { environment } from '../../../environments/environment';
+import { finalize } from 'rxjs/operators';
+
+type TechnicianStatus = 'pending' | 'approved' | 'rejected';
 
 interface TechnicianRequest {
   id: string;
+  userId: string;
   name: string;
-  phone: string;
-  service: string;
+  phoneNumber: string;
+  serviceType: string;
+  governorate?: string;
+  city?: string;
   location: string;
-  status: 'pending' | 'approved' | 'rejected';
-  // Add any other fields from backend as needed
+  frontIdImage?: string | null;
+  backIdImage?: string | null;
+  criminalRecordImage?: string | null;
+  status: TechnicianStatus;
+  raw?: any;
 }
 
 interface RejectionData {
@@ -27,13 +39,14 @@ interface RejectionData {
 @Component({
   selector: 'app-requests',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, FormsModule, PaginationComponent],
+  imports: [HeaderComponent, Sidebar, FormsModule, PaginationComponent, LoadingSpinnerComponent],
   templateUrl: './requests.page.html',
   styleUrl: './requests.page.css',
 })
 export class RequestsPage implements OnInit {
+  environment = environment;
   searchQuery = '';
-  activeTab: 'all' | 'pending' | 'approved' | 'rejected' = 'pending';
+  activeTab: 'all' | 'pending' | 'rejected' = 'pending';
   sidebarOpen = false;
   
   // Document Modal
@@ -61,18 +74,31 @@ export class RequestsPage implements OnInit {
   hasExactTotal = true;
   hasNextPage = false;
   readonly pageSizeOptions = [5, 10, 20, 50];
+  rejectionReasons: string[] = [];
+  rejectionReasonsLoading = false;
+  private tabTotals: Record<'all' | 'pending' | 'rejected', number> = {
+    all: 0,
+    pending: 0,
+    rejected: 0
+  };
+  private fetchSequence = 0;
+  private pendingRequests = 0;
 
-  private readonly statusParamMap: Record<'all' | 'pending' | 'approved' | 'rejected', number | null> = {
+  private isLatestRequest(requestId: number): boolean {
+    return this.fetchSequence === requestId;
+  }
+
+  private readonly statusParamMap: Record<'all' | 'pending' | 'rejected', number | null> = {
     all: null,
     pending: 1,
-    approved: null,
-    rejected: null
+    rejected: 3
   };
 
-  constructor(private requestsService: RequestsService) {}
+  constructor(private requestsService: RequestsService, private notificationService: NotificationService) {}
 
   ngOnInit() {
     this.fetchRequests();
+    this.fetchRejectionReasons();
   }
 
   toggleSidebar() {
@@ -84,38 +110,59 @@ export class RequestsPage implements OnInit {
   }
 
   fetchRequests(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {
+    const requestId = ++this.fetchSequence;
     this.pageNumber = pageNumber;
     this.pageSize = pageSize;
     this.loading = true;
+    this.pendingRequests++;
     this.error = '';
     const statusFilter = this.statusParamMap[this.activeTab];
 
-    this.requestsService.getTechnicianRequests(statusFilter, pageNumber, pageSize).subscribe({
+    this.requestsService
+      .getTechnicianRequests(statusFilter, pageNumber, pageSize)
+      .pipe(
+        finalize(() => {
+          this.pendingRequests = Math.max(this.pendingRequests - 1, 0);
+          if (this.pendingRequests === 0) {
+            this.loading = false;
+          }
+        })
+      )
+      .subscribe({
       next: (res) => {
-        const payload = extractPaginatedPayload<TechnicianRequest>(res, ['requests', 'data']);
-        if (pageNumber > 1 && payload.items.length === 0) {
-          this.pageNumber = pageNumber - 1;
+        const payloadSource = (res as any)?.data ?? (res as any)?.requests ?? res;
+        const payload = extractPaginatedPayload<any>(payloadSource, ['requests', 'data']);
+        const normalizedItems = payload.items.map((item) => this.normalizeRequest(item));
+
+        if (pageNumber > 1 && normalizedItems.length === 0) {
+          const previousPage = Math.max(pageNumber - 1, 1);
+          this.pageNumber = previousPage;
           this.hasExactTotal = false;
           this.hasNextPage = false;
-          this.loading = false;
+          this.fetchRequests(previousPage, pageSize);
           return;
         }
-        this.requests = payload.items;
+        if (!this.isLatestRequest(requestId)) {
+          return;
+        }
+        this.requests = normalizedItems;
         const pagination = buildPaginationState(payload, pageNumber, pageSize);
         this.totalItems = pagination.totalItems;
         this.hasExactTotal = pagination.hasExactTotal;
         this.hasNextPage = pagination.hasNextPage;
-        this.loading = false;
+        this.tabTotals[this.activeTab] = pagination.totalItems;
       },
       error: (err) => {
+        if (!this.isLatestRequest(requestId)) {
+          return;
+        }
         this.error = 'فشل في تحميل الطلبات';
-        this.loading = false;
         this.hasNextPage = false;
       }
     });
   }
 
-  selectTab(tab: 'all' | 'pending' | 'approved' | 'rejected') {
+  selectTab(tab: 'all' | 'pending' | 'rejected') {
     if (this.activeTab === tab) {
       return;
     }
@@ -132,31 +179,23 @@ export class RequestsPage implements OnInit {
   }
 
   get pendingCount(): number {
-    return this.requests.filter(r => r.status === 'pending').length;
-  }
-
-  get approvedCount(): number {
-    return this.requests.filter(r => r.status === 'approved').length;
+    return this.tabTotals.pending || (this.activeTab === 'pending' ? this.totalItems : 0);
   }
 
   get rejectedCount(): number {
-    return this.requests.filter(r => r.status === 'rejected').length;
+    return this.tabTotals.rejected || (this.activeTab === 'rejected' ? this.totalItems : 0);
+  }
+
+  get allCount(): number {
+    return this.tabTotals.all || (this.activeTab === 'all' ? this.totalItems : this.requests.length);
   }
 
   get filteredRequests(): TechnicianRequest[] {
-    let filtered = this.requests;
-    
-    // Filter by tab
-    if (this.activeTab !== 'all') {
-      filtered = filtered.filter(r => r.status === this.activeTab);
+    if (!this.searchQuery.trim()) {
+      return this.requests;
     }
-    
-    // Filter by search
-    if (this.searchQuery.trim()) {
-      filtered = filtered.filter(r => r.phone.includes(this.searchQuery));
-    }
-    
-    return filtered;
+    const query = this.searchQuery.trim();
+    return this.requests.filter((request) => request.phoneNumber?.includes(query));
   }
 
   // Document Modal
@@ -172,12 +211,18 @@ export class RequestsPage implements OnInit {
 
   // Approve Request
   approveRequest(request: TechnicianRequest) {
-    this.requestsService.approveTechnician(request.id).subscribe({
+    if (!request.userId) {
+      this.notificationService.error('معرف المستخدم غير متوفر لهذا الطلب');
+      return;
+    }
+
+    this.requestsService.approveTechnician(request.userId).subscribe({
       next: () => {
-        request.status = 'approved';
+        this.notificationService.success('تم قبول الطلب بنجاح');
+        this.fetchRequests(this.pageNumber, this.pageSize);
       },
-      error: (err) => {
-        alert('فشل في قبول الفني');
+      error: () => {
+        this.notificationService.error('تعذر قبول الطلب');
       }
     });
   }
@@ -189,7 +234,7 @@ export class RequestsPage implements OnInit {
       invalidFrontId: false,
       invalidBackId: false,
       invalidCriminalRecord: false,
-      reason: '',
+      reason: this.rejectionReasons[0] ?? '',
       customReason: ''
     };
     this.isRejectModalOpen = true;
@@ -201,17 +246,153 @@ export class RequestsPage implements OnInit {
   }
 
   confirmReject() {
-    if (this.requestToReject) {
-      const reason = this.rejectionData.customReason || this.rejectionData.reason || 'غير محدد';
-      this.requestsService.rejectTechnician(this.requestToReject.id, reason).subscribe({
-        next: () => {
-          this.requestToReject!.status = 'rejected';
-          this.closeRejectModal();
-        },
-        error: (err) => {
-          alert('فشل في رفض الطلب');
-        }
-      });
+    if (!this.requestToReject) {
+      return;
+    }
+
+    const resolvedReason = (this.rejectionData.customReason || this.rejectionData.reason).trim();
+    if (!resolvedReason) {
+      this.notificationService.error('يرجى اختيار سبب الرفض أو إدخال سبب مخصص');
+      return;
+    }
+
+    const payload: RejectTechnicianPayload = {
+      id: this.requestToReject.id,
+      rejectionReason: resolvedReason,
+      is_front_rejected: this.rejectionData.invalidFrontId,
+      is_back_rejected: this.rejectionData.invalidBackId,
+      is_criminal_rejected: this.rejectionData.invalidCriminalRecord
+    };
+
+    this.requestsService.rejectTechnician(payload).subscribe({
+      next: () => {
+        this.notificationService.success('تم رفض الطلب بنجاح');
+        this.closeRejectModal();
+        this.fetchRequests(this.pageNumber, this.pageSize);
+      },
+      error: () => {
+        this.notificationService.error('تعذر رفض الطلب');
+      }
+    });
+  }
+
+  getDocumentUrl(docType: 'front' | 'back' | 'criminal'): string | null {
+    if (!this.selectedRequest) {
+      return null;
+    }
+
+    const fileNameMap = {
+      front: this.selectedRequest.frontIdImage,
+      back: this.selectedRequest.backIdImage,
+      criminal: this.selectedRequest.criminalRecordImage
+    } as const;
+
+    const fileName = fileNameMap[docType];
+    if (!fileName) {
+      return null;
+    }
+    return `${environment.apiUrl}/api/Files/technician/${fileName}`;
+  }
+
+  private fetchRejectionReasons() {
+    this.rejectionReasonsLoading = true;
+    this.requestsService.getRejectionReasons().subscribe({
+      next: (response) => {
+        this.rejectionReasons = this.normalizeRejectionReasons(response);
+        this.rejectionReasonsLoading = false;
+      },
+      error: () => {
+        this.rejectionReasonsLoading = false;
+      }
+    });
+  }
+
+  private normalizeRejectionReasons(response: any): string[] {
+    if (!response) {
+      return [];
+    }
+
+    const source = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+    return source
+      .map((entry: any) => this.extractReasonLabel(entry))
+      .filter((reason: string | null): reason is string => Boolean(reason));
+  }
+
+  private extractReasonLabel(entry: any): string | null {
+    if (!entry) {
+      return null;
+    }
+    if (typeof entry === 'string') {
+      return entry;
+    }
+    if (typeof entry === 'object') {
+      return entry.reason ?? entry.name ?? entry.title ?? entry.label ?? null;
+    }
+    return null;
+  }
+
+  private normalizeRequest(raw: any): TechnicianRequest {
+    const fallback = raw?.user ?? raw?.technician ?? raw?.applicant ?? {};
+    const id = raw?.id ?? raw?.technicianRequestId ?? raw?.requestId ?? raw?.userId ?? '';
+    const userId = raw?.userId ?? fallback?.id ?? id;
+    const name = fallback?.name ?? fallback?.fullName ?? raw?.name ?? 'بدون اسم';
+    const phoneNumber = fallback?.phone ?? fallback?.phoneNumber ?? raw?.phone ?? '';
+    const serviceType = raw?.service ?? raw?.serviceType ?? fallback?.serviceType ?? fallback?.service ?? 'غير محدد';
+    const governorate = raw?.governorate ?? fallback?.governorate ?? raw?.address?.governorate ?? '';
+    const city = raw?.city ?? fallback?.city ?? raw?.address?.city ?? '';
+    const frontIdImage = raw?.frontIdImage ?? raw?.faceIdImage ?? raw?.frontId ?? fallback?.frontIdImage ?? null;
+    const backIdImage = raw?.backIdImage ?? raw?.backId ?? fallback?.backIdImage ?? null;
+    const criminalRecordImage = raw?.criminalRecordImage ?? raw?.criminalRecord ?? fallback?.criminalRecordImage ?? null;
+
+    return {
+      id: id || userId,
+      userId: userId || id,
+      name,
+      phoneNumber: phoneNumber || '-',
+      serviceType,
+      governorate,
+      city,
+      location: this.formatLocation(governorate, city),
+      frontIdImage: frontIdImage || null,
+      backIdImage: backIdImage || null,
+      criminalRecordImage: criminalRecordImage || null,
+      status: this.mapStatus(raw?.technicianStatus ?? raw?.status),
+      raw
+    };
+  }
+
+  private formatLocation(governorate?: string, city?: string): string {
+    return [governorate, city].filter(Boolean).join(' / ') || '-';
+  }
+
+  private mapStatus(value: unknown): TechnicianStatus {
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized.includes('pend')) {
+        return 'pending';
+      }
+      if (normalized.includes('reject')) {
+        return 'rejected';
+      }
+      if (normalized.includes('approve')) {
+        return 'approved';
+      }
+    }
+
+    const numeric = typeof value === 'number' ? value : Number(value);
+    switch (numeric) {
+      case 2:
+        return 'approved';
+      case 3:
+        return 'rejected';
+      case 1:
+      default:
+        return 'pending';
     }
   }
 }

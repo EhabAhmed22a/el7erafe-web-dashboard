@@ -7,18 +7,22 @@ import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { ServicesService } from '../../services/services.service';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
+import { NotificationService } from '../../services/notification.service';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
+import { environment } from '../../../environments/environment';
 
 interface Service {
   id: string;
   icon: string;
   nameAr: string;
   serviceImageURL?: string | null;
+  imageSrc?: string | null;
 }
 
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, FormsModule, CommonModule, PaginationComponent],
+  imports: [HeaderComponent, Sidebar, FormsModule, CommonModule, PaginationComponent, LoadingSpinnerComponent],
   templateUrl: './services.page.html',
   styleUrls: ['./services.page.css'],
 })
@@ -49,7 +53,7 @@ export class ServicesPage implements OnInit {
   hasNextPage = false;
   readonly pageSizeOptions = [6, 12, 24, 48];
 
-  constructor(private servicesService: ServicesService, private cdr: ChangeDetectorRef) {}
+  constructor(private servicesService: ServicesService, private cdr: ChangeDetectorRef, private notificationService: NotificationService) {}
 
   ngOnInit() {
     this.fetchServices();
@@ -81,12 +85,16 @@ export class ServicesPage implements OnInit {
           this.cdr.markForCheck();
           return;
         }
-        this.services = rawItems.map((s: any) => ({
-          id: s.id?.toString() ?? '',
-          icon: '',
-          nameAr: s.name ?? '',
-          serviceImageURL: s.serviceImageURL ?? null,
-        }));
+        this.services = rawItems.map((s: any) => {
+          const rawImage = s.serviceImageURL ?? s.serviceImage ?? s.imageUrl ?? s.image ?? null;
+          return {
+            id: s.id?.toString() ?? '',
+            icon: s.icon ?? '',
+            nameAr: s.name ?? s.nameAr ?? '',
+            serviceImageURL: rawImage,
+            imageSrc: this.resolveImageUrl(rawImage)
+          } as Service;
+        });
         const pagination = buildPaginationState(payload, pageNumber, pageSize);
         this.totalItems = pagination.totalItems;
         this.hasExactTotal = pagination.hasExactTotal;
@@ -126,7 +134,7 @@ export class ServicesPage implements OnInit {
     this.modalService = { ...service };
     this.isAddEditModalOpen = true;
     this.selectedImageFile = null;
-    this.selectedImagePreview = service.serviceImageURL || null;
+    this.selectedImagePreview = service.imageSrc || null;
   }
 
   closeAddEditModal() {
@@ -155,6 +163,7 @@ export class ServicesPage implements OnInit {
           next: () => {
             this.fetchServices(this.pageNumber, this.pageSize);
             this.closeAddEditModal();
+            this.notificationService.success('تم تحديث المهنة بنجاح');
           },
           error: () => alert('فشل في تعديل المهنة')
         });
@@ -171,6 +180,7 @@ export class ServicesPage implements OnInit {
           next: () => {
             this.fetchServices(this.pageNumber, this.pageSize);
             this.closeAddEditModal();
+            this.notificationService.success('تم إضافة المهنة بنجاح');
           },
           error: () => alert('فشل في إضافة المهنة')
         });
@@ -210,6 +220,7 @@ export class ServicesPage implements OnInit {
         this.closeDeleteModal();
         const targetPage = this.services.length === 1 && this.pageNumber > 1 ? this.pageNumber - 1 : this.pageNumber;
         this.fetchServices(targetPage, this.pageSize);
+        this.notificationService.success('تم حذف المهنة');
       },
       error: () => alert('فشل في حذف المهنة')
     });
@@ -221,5 +232,17 @@ export class ServicesPage implements OnInit {
 
   onPageSizeChange(size: number) {
     this.fetchServices(1, size);
+  }
+
+  private resolveImageUrl(value?: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+    if (/^https?:\/\//i.test(value) || value.startsWith('data:')) {
+      return value;
+    }
+    const base = environment.apiUrl.replace(/\/$/, '');
+    const sanitized = value.replace(/^\/+/, '');
+    return `${base}/${sanitized}`;
   }
 }
