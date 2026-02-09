@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RequestsService, RejectTechnicianPayload } from '../../services/requests.service';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../components/header/header.component';
@@ -8,9 +8,9 @@ import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagin
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 import { NotificationService } from '../../services/notification.service';
 import { environment } from '../../../environments/environment';
-import { finalize } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
-type TechnicianStatus = 'pending' | 'approved' | 'rejected';
+type TechnicianStatus = 'pending' | 'approved' | 'rejected' | 'blocked';
 
 interface TechnicianRequest {
   id: string;
@@ -46,7 +46,6 @@ interface RejectionData {
 export class RequestsPage implements OnInit {
   environment = environment;
   searchQuery = '';
-  activeTab: 'all' | 'pending' | 'rejected' = 'pending';
   sidebarOpen = false;
   
   // Document Modal
@@ -65,6 +64,14 @@ export class RequestsPage implements OnInit {
     customReason: ''
   };
 
+  private readonly statusFilters = [1, 2, 3, 4];
+  private readonly statusOrder: Record<TechnicianStatus, number> = {
+    pending: 1,
+    approved: 2,
+    rejected: 3,
+    blocked: 4
+  };
+
   requests: TechnicianRequest[] = [];
   loading = false;
   error = '';
@@ -76,25 +83,12 @@ export class RequestsPage implements OnInit {
   readonly pageSizeOptions = [5, 10, 20, 50];
   rejectionReasons: string[] = [];
   rejectionReasonsLoading = false;
-  private tabTotals: Record<'all' | 'pending' | 'rejected', number> = {
-    all: 0,
-    pending: 0,
-    rejected: 0
-  };
-  private fetchSequence = 0;
-  private pendingRequests = 0;
 
-  private isLatestRequest(requestId: number): boolean {
-    return this.fetchSequence === requestId;
-  }
-
-  private readonly statusParamMap: Record<'all' | 'pending' | 'rejected', number | null> = {
-    all: null,
-    pending: 1,
-    rejected: 3
-  };
-
-  constructor(private requestsService: RequestsService, private notificationService: NotificationService) {}
+  constructor(
+    private requestsService: RequestsService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.fetchRequests();
@@ -110,64 +104,71 @@ export class RequestsPage implements OnInit {
   }
 
   fetchRequests(pageNumber: number = this.pageNumber, pageSize: number = this.pageSize) {
-    const requestId = ++this.fetchSequence;
     this.pageNumber = pageNumber;
     this.pageSize = pageSize;
     this.loading = true;
-    this.pendingRequests++;
     this.error = '';
-    const statusFilter = this.statusParamMap[this.activeTab];
 
-    this.requestsService
-      .getTechnicianRequests(statusFilter, pageNumber, pageSize)
-      .pipe(
-        finalize(() => {
-          this.pendingRequests = Math.max(this.pendingRequests - 1, 0);
-          if (this.pendingRequests === 0) {
-            this.loading = false;
-          }
-        })
-      )
-      .subscribe({
-      next: (res) => {
-        const payloadSource = (res as any)?.data ?? (res as any)?.requests ?? res;
-        const payload = extractPaginatedPayload<any>(payloadSource, ['requests', 'data']);
-        const normalizedItems = payload.items.map((item) => this.normalizeRequest(item));
+    const requests$ = this.statusFilters.map((status) =>
+      this.requestsService.getTechnicianRequests(status, pageNumber, pageSize)
+    );
 
-        if (pageNumber > 1 && normalizedItems.length === 0) {
+    forkJoin(requests$).subscribe({
+      next: (responses) => {
+        let combined: TechnicianRequest[] = [];
+        let totalItems = 0;
+        let hasExactTotal = true;
+        let hasNextPage = false;
+
+        responses.forEach((res, index) => {
+          const statusOverride = this.statusFilters[index];
+          const payloadSource =
+            (res as any)?.data?.requests ??
+            (res as any)?.data?.technicians ??
+            (res as any)?.data ??
+            (res as any)?.requests ??
+            res;
+          const payload = extractPaginatedPayload<any>(payloadSource, [
+            'requests',
+            'technicians',
+            'technicianRequests',
+            'data'
+          ]);
+          const normalizedItems = payload.items.map((item) => this.normalizeRequest(item, statusOverride));
+          combined = combined.concat(normalizedItems);
+
+          const pagination = buildPaginationState(payload, pageNumber, pageSize);
+          totalItems += pagination.totalItems;
+          hasExactTotal = hasExactTotal && pagination.hasExactTotal;
+          hasNextPage = hasNextPage || pagination.hasNextPage;
+        });
+
+        if (pageNumber > 1 && combined.length === 0) {
           const previousPage = Math.max(pageNumber - 1, 1);
           this.pageNumber = previousPage;
           this.hasExactTotal = false;
           this.hasNextPage = false;
+          this.loading = false;
+          this.cdr.markForCheck();
           this.fetchRequests(previousPage, pageSize);
           return;
         }
-        if (!this.isLatestRequest(requestId)) {
-          return;
-        }
-        this.requests = normalizedItems;
-        const pagination = buildPaginationState(payload, pageNumber, pageSize);
-        this.totalItems = pagination.totalItems;
-        this.hasExactTotal = pagination.hasExactTotal;
-        this.hasNextPage = pagination.hasNextPage;
-        this.tabTotals[this.activeTab] = pagination.totalItems;
+
+        combined.sort((a, b) => this.statusOrder[a.status] - this.statusOrder[b.status]);
+        this.requests = combined;
+        this.totalItems = totalItems;
+        this.hasExactTotal = hasExactTotal;
+        this.hasNextPage = hasNextPage;
+        this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        if (!this.isLatestRequest(requestId)) {
-          return;
-        }
+      error: () => {
         this.error = 'فشل في تحميل الطلبات';
         this.hasNextPage = false;
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
-  }
-
-  selectTab(tab: 'all' | 'pending' | 'rejected') {
-    if (this.activeTab === tab) {
-      return;
-    }
-    this.activeTab = tab;
-    this.fetchRequests(1, this.pageSize);
   }
 
   onPageChange(page: number) {
@@ -178,24 +179,16 @@ export class RequestsPage implements OnInit {
     this.fetchRequests(1, size);
   }
 
-  get pendingCount(): number {
-    return this.tabTotals.pending || (this.activeTab === 'pending' ? this.totalItems : 0);
-  }
-
-  get rejectedCount(): number {
-    return this.tabTotals.rejected || (this.activeTab === 'rejected' ? this.totalItems : 0);
-  }
-
-  get allCount(): number {
-    return this.tabTotals.all || (this.activeTab === 'all' ? this.totalItems : this.requests.length);
-  }
-
   get filteredRequests(): TechnicianRequest[] {
     if (!this.searchQuery.trim()) {
       return this.requests;
     }
     const query = this.searchQuery.trim();
     return this.requests.filter((request) => request.phoneNumber?.includes(query));
+  }
+
+  get displayPageSize(): number {
+    return this.pageSize * this.statusFilters.length;
   }
 
   // Document Modal
@@ -336,7 +329,7 @@ export class RequestsPage implements OnInit {
     return null;
   }
 
-  private normalizeRequest(raw: any): TechnicianRequest {
+  private normalizeRequest(raw: any, statusOverride?: number): TechnicianRequest {
     const fallback = raw?.user ?? raw?.technician ?? raw?.applicant ?? {};
     const id = raw?.id ?? raw?.technicianRequestId ?? raw?.requestId ?? raw?.userId ?? '';
     const userId = raw?.userId ?? fallback?.id ?? id;
@@ -361,7 +354,7 @@ export class RequestsPage implements OnInit {
       frontIdImage: frontIdImage || null,
       backIdImage: backIdImage || null,
       criminalRecordImage: criminalRecordImage || null,
-      status: this.mapStatus(raw?.technicianStatus ?? raw?.status),
+      status: this.mapStatus(statusOverride ?? raw?.technicianStatus ?? raw?.status),
       raw
     };
   }
@@ -379,6 +372,9 @@ export class RequestsPage implements OnInit {
       if (normalized.includes('reject')) {
         return 'rejected';
       }
+      if (normalized.includes('block')) {
+        return 'blocked';
+      }
       if (normalized.includes('approve')) {
         return 'approved';
       }
@@ -390,9 +386,33 @@ export class RequestsPage implements OnInit {
         return 'approved';
       case 3:
         return 'rejected';
+      case 4:
+        return 'blocked';
       case 1:
       default:
         return 'pending';
     }
+  }
+
+  getRejectionReason(request: TechnicianRequest): string {
+    const raw = request.raw ?? {};
+    return (
+      raw.rejectionReason ||
+      raw.rejectReason ||
+      raw.reason ||
+      raw.rejection?.reason ||
+      'غير مذكور'
+    );
+  }
+
+  getBlockReason(request: TechnicianRequest): string {
+    const raw = request.raw ?? {};
+    return (
+      raw.suspensionReason ||
+      raw.blockReason ||
+      raw.blockedReason ||
+      raw.reason ||
+      'غير مذكور'
+    );
   }
 }

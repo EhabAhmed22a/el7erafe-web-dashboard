@@ -28,42 +28,27 @@
             <!-- Breadcrumb Description -->
             <p class="text-gray-500 mt-1 text-xs">كل بيانات الفنيين، وثائقهم، وحالة حسابهم في مكان واحد</p>
             
-            <!-- Status Tabs & Search -->
+            <!-- Export + Search -->
             <div class="mt-3 flex items-center justify-between flex-wrap gap-3">
-                <!-- Status Tabs -->
-                <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                    <button 
-                        (click)="selectTab('all')" 
-                        [class]="activeTab === 'all' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
-                        class="px-3 py-1.5 text-xs rounded-md transition">
-                        الكل (قيد الانتظار + مرفوض)
-                        <span class="mr-1 bg-gray-200 px-1.5 py-0.5 rounded-full text-[10px]">{{ allCount }}</span>
-                    </button>
-                    <button 
-                        (click)="selectTab('pending')" 
-                        [class]="activeTab === 'pending' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
-                        class="px-3 py-1.5 text-xs rounded-md transition">
-                        قيد الانتظار
-                        <span class="mr-1 bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full text-[10px]">{{ pendingCount }}</span>
-                    </button>
-                    <button 
-                        (click)="selectTab('rejected')" 
-                        [class]="activeTab === 'rejected' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
-                        class="px-3 py-1.5 text-xs rounded-md transition">
-                        مرفوض
-                        <span class="mr-1 bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full text-[10px]">{{ rejectedCount }}</span>
-                    </button>
-                </div>
-
-                <!-- Search Bar -->
-                <div class="w-full max-w-[180px] sm:max-w-xs">
+                <div class="relative w-[303px]">
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#727070]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5939 23.258L12.5819 23.26L12.5109 23.295L12.4909 23.299L12.4769 23.295L12.4059 23.259C12.3953 23.2563 12.3873 23.2583 12.3819 23.265L12.3779 23.275L12.3609 23.703L12.3659 23.723L12.3759 23.736L12.4799 23.81L12.4949 23.814L12.5069 23.81L12.6109 23.736L12.6229 23.72L12.6269 23.703L12.6099 23.276C12.6073 23.2653 12.6019 23.2593 12.5939 23.258ZM12.8579 23.145L12.8439 23.147L12.6599 23.24L12.6499 23.25L12.6469 23.261L12.6649 23.691L12.6699 23.703L12.6779 23.711L12.8789 23.803C12.8916 23.8063 12.9013 23.8037 12.9079 23.795L12.9119 23.781L12.8779 23.167C12.8746 23.1543 12.8679 23.147 12.8579 23.145ZM12.1429 23.147C12.1385 23.1443 12.1333 23.1435 12.1282 23.1446C12.1232 23.1457 12.1188 23.1487 12.1159 23.153L12.1099 23.167L12.0759 23.781C12.0766 23.793 12.0823 23.801 12.0929 23.805L12.1079 23.803L12.3089 23.71L12.3189 23.702L12.3219 23.691L12.3399 23.261L12.3369 23.249L12.3269 23.239L12.1429 23.147Z" fill="#727070"/>
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 2C11.08 2 11.65 2.058 12.199 2.17C12.4589 2.22278 12.6872 2.37664 12.8337 2.59775C12.9802 2.81886 13.0328 3.08909 12.98 3.349C12.9272 3.60891 12.7734 3.83721 12.5523 3.98368C12.3312 4.13014 12.0609 4.18278 11.801 4.13C10.5415 3.87306 9.23408 3.99534 8.04406 4.48139C6.85404 4.96743 5.83486 5.7954 5.11536 6.86063C4.39586 7.92586 4.00837 9.1805 4.00186 10.4659C3.99536 11.7514 4.37014 13.0099 5.07881 14.0823C5.78749 15.1548 6.79825 15.993 7.98329 16.4911C9.16833 16.9892 10.4744 17.1247 11.7365 16.8805C12.9985 16.6363 14.1598 16.0234 15.0736 15.1193C15.9873 14.2152 16.6125 13.0604 16.87 11.801C16.8961 11.6723 16.9474 11.55 17.0208 11.4411C17.0942 11.3322 17.1883 11.2388 17.2978 11.1663C17.4072 11.0938 17.5299 11.0435 17.6588 11.0184C17.7877 10.9933 17.9203 10.9939 18.049 11.02C18.1777 11.0461 18.3 11.0974 18.4089 11.1708C18.5178 11.2441 18.6112 11.3383 18.6837 11.4477C18.7562 11.5572 18.8065 11.6799 18.8316 11.8088C18.8567 11.9377 18.8561 12.0703 18.83 12.199C18.5864 13.3916 18.0896 14.518 17.373 15.502L17.176 15.762L20.828 19.414C21.0093 19.5935 21.115 19.8356 21.1237 20.0905C21.1323 20.3455 21.0432 20.5942 20.8745 20.7856C20.7059 20.977 20.4704 21.0967 20.2164 21.1202C19.9623 21.1437 19.7089 21.0692 19.508 20.912L19.414 20.828L15.762 17.176C14.6975 18.015 13.4477 18.5872 12.117 18.8449C10.7864 19.1026 9.41333 19.0384 8.11252 18.6576C6.81171 18.2768 5.62084 17.5904 4.63925 16.6557C3.65766 15.7211 2.91382 14.5652 2.46979 13.2846C2.02576 12.004 1.89442 10.6357 2.08672 9.29404C2.27902 7.95235 2.78939 6.67609 3.57525 5.57175C4.3611 4.46742 5.39966 3.56702 6.60427 2.94569C7.80887 2.32436 9.1446 2.00012 10.5 2ZM19 1C19.1871 1 19.3704 1.05248 19.5292 1.15147C19.6879 1.25046 19.8157 1.392 19.898 1.56L19.946 1.677L20.076 2.055C20.2132 2.45718 20.4343 2.82563 20.7246 3.13594C21.0149 3.44625 21.3678 3.69135 21.76 3.855L21.945 3.925L22.323 4.054C22.5102 4.11786 22.6742 4.2358 22.7944 4.3929C22.9146 4.54999 22.9855 4.7392 22.9981 4.93658C23.0107 5.13396 22.9645 5.33065 22.8654 5.50178C22.7662 5.67291 22.6185 5.8108 22.441 5.898L22.323 5.946L21.945 6.076C21.5428 6.2132 21.1744 6.43428 20.8641 6.72459C20.5538 7.01491 20.3087 7.36783 20.145 7.76L20.075 7.945L19.946 8.323C19.882 8.51014 19.764 8.6741 19.6069 8.79416C19.4497 8.91423 19.2605 8.98499 19.0631 8.99752C18.8657 9.01004 18.6691 8.96376 18.498 8.86452C18.3269 8.76528 18.1891 8.61755 18.102 8.44L18.054 8.323L17.924 7.945C17.7868 7.54282 17.5657 7.17437 17.2754 6.86406C16.9851 6.55375 16.6322 6.30865 16.24 6.145L16.055 6.075L15.677 5.946C15.4898 5.88214 15.3258 5.7642 15.2056 5.6071C15.0854 5.45001 15.0146 5.2608 15.0019 5.06342C14.9893 4.86604 15.0355 4.66935 15.1346 4.49822C15.2338 4.32709 15.3815 4.1892 15.559 4.102L15.677 4.054L16.055 3.924C16.4572 3.7868 16.8256 3.56572 17.136 3.27541C17.4463 2.98509 17.6914 2.63217 17.855 2.24L17.925 2.055L18.054 1.677C18.1214 1.47959 18.2488 1.30818 18.4184 1.18679C18.5881 1.06539 18.7914 1.00008 19 1ZM19 4.196C18.7635 4.4937 18.4937 4.76344 18.196 5C18.4947 5.23667 18.7627 5.50467 19 5.804C19.2367 5.50533 19.5047 5.23733 19.804 5C19.5063 4.76344 19.2366 4.4937 19 4.196Z" fill="#727070"/>
+                        </svg>
+                    </span>
                     <input 
                         type="text" 
                         placeholder="ابحث برقم الهاتف..." 
                         [(ngModel)]="searchQuery"
-                        class="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-[303px] h-[40px] pr-10 pl-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
+
+                <button class="flex items-center gap-1.5 bg-[#3775FA] hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>تصدير</span>
+                </button>
             </div>
 
             <!-- Requests Table -->
@@ -104,6 +89,8 @@
                                     <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">قيد الانتظار</span>
                                 } @else if (request.status === 'approved') {
                                     <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">مقبول</span>
+                                } @else if (request.status === 'blocked') {
+                                    <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs">محظور</span>
                                 } @else {
                                     <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">مرفوض</span>
                                 }
@@ -118,6 +105,10 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                     </button>
                                 </div>
+                                } @else if (request.status === 'rejected') {
+                                <span class="text-xs text-red-600">سبب الرفض: {{ getRejectionReason(request) }}</span>
+                                } @else if (request.status === 'blocked') {
+                                <span class="text-xs text-orange-600">سبب الحظر: {{ getBlockReason(request) }}</span>
                                 } @else {
                                 <span class="text-gray-400 text-xs">—</span>
                                 }
@@ -138,11 +129,11 @@
                 }
             </div>
 
-            @if (!error && totalItems > 0) {
+            @if (!error && (totalItems > 0 || hasNextPage)) {
             <app-pagination
                 class="mt-4"
                 [pageNumber]="pageNumber"
-                [pageSize]="pageSize"
+                [pageSize]="displayPageSize"
                 [totalItems]="totalItems"
                 [pageSizeOptions]="pageSizeOptions"
                 [exactTotal]="hasExactTotal"
