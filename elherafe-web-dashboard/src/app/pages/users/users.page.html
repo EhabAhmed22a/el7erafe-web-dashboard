@@ -27,9 +27,9 @@
             <!-- Description -->
             <p class="text-gray-500 mt-1 text-xs">اعرض، عدّل، أو حدّث بيانات العملاء بسهولة</p>
             <!-- Search, Filter & Export Row -->
-            <div class="mt-3 flex items-center gap-3 flex-wrap">
+            <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
                 <!-- Search Bar -->
-                <div class="relative w-full max-w-[200px]">
+                    <div class="relative w-[303px]">
                     <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#727070]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                           <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5939 23.258L12.5819 23.26L12.5109 23.295L12.4909 23.299L12.4769 23.295L12.4059 23.259C12.3953 23.2563 12.3873 23.2583 12.3819 23.265L12.3779 23.275L12.3609 23.703L12.3659 23.723L12.3759 23.736L12.4799 23.81L12.4949 23.814L12.5069 23.81L12.6109 23.736L12.6229 23.72L12.6269 23.703L12.6099 23.276C12.6073 23.2653 12.6019 23.2593 12.5939 23.258ZM12.8579 23.145L12.8439 23.147L12.6599 23.24L12.6499 23.25L12.6469 23.261L12.6649 23.691L12.6699 23.703L12.6779 23.711L12.8789 23.803C12.8916 23.8063 12.9013 23.8037 12.9079 23.795L12.9119 23.781L12.8779 23.167C12.8746 23.1543 12.8679 23.147 12.8579 23.145ZM12.1429 23.147C12.1385 23.1443 12.1333 23.1435 12.1282 23.1446C12.1232 23.1457 12.1188 23.1487 12.1159 23.153L12.1099 23.167L12.0759 23.781C12.0766 23.793 12.0823 23.801 12.0929 23.805L12.1079 23.803L12.3089 23.71L12.3189 23.702L12.3219 23.691L12.3399 23.261L12.3369 23.249L12.3269 23.239L12.1429 23.147Z" fill="#727070"/>
@@ -38,19 +38,20 @@
                     </span>
                     <input 
                         type="text" 
-                        placeholder="ابحث عن مستخدم..." 
+                        placeholder="ابحث"
                         [(ngModel)]="searchQuery"
-                        class="w-full p-1.5 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-[303px] h-[40px] pr-10 pl-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-
-                
 
                 <!-- Export Button -->
                 <button class="flex items-center gap-1.5 bg-[#3775FA] hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md transition">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     <span>تصدير</span>
                 </button>
+
+                
+
             </div>
 
             <!-- Users Table -->

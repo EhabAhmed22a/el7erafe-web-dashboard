@@ -6,6 +6,7 @@ import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TechniciansService } from '../../services/technicians.service';
+import { RequestsService } from '../../services/requests.service';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { ConfirmationDialogComponent, ConfirmationVariant } from '../../components/confirmation-dialog/confirmation-dialog.component';
 import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
@@ -50,7 +51,7 @@ export class TechniciansPage implements OnInit {
   error = '';
   searchQuery = '';
   pageNumber = 1;
-  pageSize = 10;
+  pageSize = 5;
   totalItems = 0;
   hasExactTotal = true;
   hasNextPage = false;
@@ -76,7 +77,12 @@ export class TechniciansPage implements OnInit {
   };
   sidebarOpen = false;
 
-  constructor(private techniciansService: TechniciansService, private cdr: ChangeDetectorRef, private notificationService: NotificationService) { }
+  constructor(
+    private techniciansService: TechniciansService,
+    private requestsService: RequestsService,
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService
+  ) { }
 
 
   ngOnInit() {
@@ -107,11 +113,22 @@ export class TechniciansPage implements OnInit {
     this.pageSize = pageSize;
     this.loading = true;
     this.error = '';
-    this.techniciansService.getTechnicians(pageNumber, pageSize).subscribe({
+    this.requestsService.getTechnicianRequests(2, pageNumber, pageSize).subscribe({
       next: (response: any) => {
-        const payloadSource = response?.data?.technicians ?? response?.technicians ?? response;
-        const payload = extractPaginatedPayload<any>(payloadSource, ['technicians', 'data']);
-        const technicians = payload.items;
+        const payloadSource =
+          response?.data?.technicians ??
+          response?.data?.requests ??
+          response?.data ??
+          response?.technicians ??
+          response?.requests ??
+          response;
+        const payload = extractPaginatedPayload<any>(payloadSource, [
+          'technicians',
+          'requests',
+          'technicianRequests',
+          'data'
+        ]);
+        const technicians = payload.items.map((item) => this.normalizeTechnician(item));
 
         if (pageNumber > 1 && technicians.length === 0) {
           this.pageNumber = pageNumber - 1;
@@ -138,6 +155,31 @@ export class TechniciansPage implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private normalizeTechnician(raw: any): any {
+    const fallback = raw?.user ?? raw?.technician ?? raw?.applicant ?? {};
+    const id = raw?.id ?? raw?.technicianId ?? raw?.userId ?? fallback?.id ?? '';
+    const name = fallback?.name ?? fallback?.fullName ?? raw?.name ?? 'بدون اسم';
+    const phone = fallback?.phone ?? fallback?.phoneNumber ?? raw?.phone ?? raw?.phoneNumber ?? '';
+    const serviceType = raw?.service ?? raw?.serviceType ?? fallback?.serviceType ?? fallback?.service ?? 'غير محدد';
+    const governorate = raw?.governorate ?? fallback?.governorate ?? raw?.address?.governorate ?? '';
+    const city = raw?.city ?? fallback?.city ?? raw?.address?.city ?? '';
+    const faceIdImage = raw?.faceIdImage ?? raw?.frontIdImage ?? raw?.frontId ?? fallback?.frontIdImage ?? null;
+    const backIdImage = raw?.backIdImage ?? raw?.backId ?? fallback?.backIdImage ?? null;
+    const criminalRecordImage = raw?.criminalRecordImage ?? raw?.criminalRecord ?? fallback?.criminalRecordImage ?? null;
+
+    return {
+      id,
+      name,
+      phone: phone || '-',
+      serviceType,
+      governorate: governorate || '-',
+      city: city || '-',
+      faceIdImage,
+      backIdImage,
+      criminalRecordImage
+    };
   }
 
   deleteTechnician(id: string) {

@@ -155,7 +155,7 @@ export class RequestsPage implements OnInit {
         }
 
         combined.sort((a, b) => this.statusOrder[a.status] - this.statusOrder[b.status]);
-        this.requests = combined;
+        this.requests = combined.slice(0, this.pageSize);
         this.totalItems = totalItems;
         this.hasExactTotal = hasExactTotal;
         this.hasNextPage = hasNextPage;
@@ -188,7 +188,7 @@ export class RequestsPage implements OnInit {
   }
 
   get displayPageSize(): number {
-    return this.pageSize * this.statusFilters.length;
+    return this.pageSize;
   }
 
   // Document Modal
