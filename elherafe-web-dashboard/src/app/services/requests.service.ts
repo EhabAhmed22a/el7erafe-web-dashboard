@@ -61,4 +61,12 @@ export class RequestsService {
       headers: this.getHeaders()
     });
   }
+
+  unblockTechnician(technicianId: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/admin/technicians/status/${technicianId}`, {
+      isBlocked: false
+    }, {
+      headers: this.getHeaders()
+    });
+  }
 }

@@ -6,6 +6,7 @@ import { Sidebar } from '../../components/sidebar/sidebar.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { buildPaginationState, extractPaginatedPayload } from '../../utils/pagination.util';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
+import { ConfirmationDialogComponent } from '../../components/confirmation-dialog/confirmation-dialog.component';
 import { NotificationService } from '../../services/notification.service';
 import { environment } from '../../../environments/environment';
 import { forkJoin } from 'rxjs';
@@ -39,13 +40,14 @@ interface RejectionData {
 @Component({
   selector: 'app-requests',
   standalone: true,
-  imports: [HeaderComponent, Sidebar, FormsModule, PaginationComponent, LoadingSpinnerComponent],
+  imports: [HeaderComponent, Sidebar, FormsModule, PaginationComponent, LoadingSpinnerComponent, ConfirmationDialogComponent],
   templateUrl: './requests.page.html',
   styleUrl: './requests.page.css',
 })
 export class RequestsPage implements OnInit {
   environment = environment;
   searchQuery = '';
+  activeTab: 'pending' | 'rejected' | 'blocked' = 'pending';
   sidebarOpen = false;
   
   // Document Modal
@@ -64,7 +66,15 @@ export class RequestsPage implements OnInit {
     customReason: ''
   };
 
-  private readonly statusFilters = [1, 2, 3, 4];
+  isReasonDialogOpen = false;
+  reasonDialogTitle = '';
+  reasonDialogMessage = '';
+
+  // Unblock Confirmation Dialog
+  isUnblockDialogOpen = false;
+  requestToUnblock: TechnicianRequest | null = null;
+
+  private readonly statusFilters = [1, 3, 4];
   private readonly statusOrder: Record<TechnicianStatus, number> = {
     pending: 1,
     approved: 2,
@@ -108,20 +118,9 @@ export class RequestsPage implements OnInit {
     this.pageSize = pageSize;
     this.loading = true;
     this.error = '';
-
-    const requests$ = this.statusFilters.map((status) =>
-      this.requestsService.getTechnicianRequests(status, pageNumber, pageSize)
-    );
-
-    forkJoin(requests$).subscribe({
-      next: (responses) => {
-        let combined: TechnicianRequest[] = [];
-        let totalItems = 0;
-        let hasExactTotal = true;
-        let hasNextPage = false;
-
-        responses.forEach((res, index) => {
-          const statusOverride = this.statusFilters[index];
+    const statusFilter = this.activeTab === 'pending' ? 1 : this.activeTab === 'rejected' ? 3 : 4;
+    this.requestsService.getTechnicianRequests(statusFilter, pageNumber, pageSize).subscribe({
+        next: (res) => {
           const payloadSource =
             (res as any)?.data?.requests ??
             (res as any)?.data?.technicians ??
@@ -134,41 +133,42 @@ export class RequestsPage implements OnInit {
             'technicianRequests',
             'data'
           ]);
-          const normalizedItems = payload.items.map((item) => this.normalizeRequest(item, statusOverride));
-          combined = combined.concat(normalizedItems);
+          const normalizedItems = payload.items.map((item) => this.normalizeRequest(item, statusFilter));
+
+          if (pageNumber > 1 && normalizedItems.length === 0) {
+            const previousPage = Math.max(pageNumber - 1, 1);
+            this.pageNumber = previousPage;
+            this.hasExactTotal = false;
+            this.hasNextPage = false;
+            this.loading = false;
+            this.cdr.markForCheck();
+            this.fetchRequests(previousPage, pageSize);
+            return;
+          }
 
           const pagination = buildPaginationState(payload, pageNumber, pageSize);
-          totalItems += pagination.totalItems;
-          hasExactTotal = hasExactTotal && pagination.hasExactTotal;
-          hasNextPage = hasNextPage || pagination.hasNextPage;
-        });
-
-        if (pageNumber > 1 && combined.length === 0) {
-          const previousPage = Math.max(pageNumber - 1, 1);
-          this.pageNumber = previousPage;
-          this.hasExactTotal = false;
+          this.requests = normalizedItems;
+          this.totalItems = pagination.totalItems;
+          this.hasExactTotal = pagination.hasExactTotal;
+          this.hasNextPage = pagination.hasNextPage;
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.error = 'فشل في تحميل الطلبات';
           this.hasNextPage = false;
           this.loading = false;
           this.cdr.markForCheck();
-          this.fetchRequests(previousPage, pageSize);
-          return;
         }
+      });
+  }
 
-        combined.sort((a, b) => this.statusOrder[a.status] - this.statusOrder[b.status]);
-        this.requests = combined.slice(0, this.pageSize);
-        this.totalItems = totalItems;
-        this.hasExactTotal = hasExactTotal;
-        this.hasNextPage = hasNextPage;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.error = 'فشل في تحميل الطلبات';
-        this.hasNextPage = false;
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
-    });
+  selectTab(tab: 'pending' | 'rejected' | 'blocked') {
+    if (this.activeTab === tab) {
+      return;
+    }
+    this.activeTab = tab;
+    this.fetchRequests(1, this.pageSize);
   }
 
   onPageChange(page: number) {
@@ -189,6 +189,47 @@ export class RequestsPage implements OnInit {
 
   get displayPageSize(): number {
     return this.pageSize;
+  }
+
+  openReasonDialog(kind: 'rejected' | 'blocked') {
+    this.reasonDialogTitle = kind === 'rejected' ? 'سبب الرفض' : 'سبب الحظر';
+    this.reasonDialogMessage = kind === 'rejected' ? 'سبب الرفض غير متاح حاليا.' : 'سبب الحظر غير متاح حاليا.';
+    this.isReasonDialogOpen = true;
+  }
+
+  closeReasonDialog() {
+    this.isReasonDialogOpen = false;
+  }
+
+  unblockTechnician(request: TechnicianRequest) {
+    this.requestToUnblock = request;
+    this.isUnblockDialogOpen = true;
+  }
+
+  confirmUnblock() {
+    if (!this.requestToUnblock) {
+      return;
+    }
+    this.loading = true;
+    this.isUnblockDialogOpen = false;
+    this.requestsService.unblockTechnician(this.requestToUnblock.id).subscribe({
+      next: () => {
+        this.notificationService.success('تم رفع الحظر عن الفني بنجاح');
+        this.requestToUnblock = null;
+        this.fetchRequests(this.pageNumber, this.pageSize);
+      },
+      error: () => {
+        this.notificationService.error('فشل في رفع الحظر عن الفني');
+        this.requestToUnblock = null;
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  cancelUnblock() {
+    this.isUnblockDialogOpen = false;
+    this.requestToUnblock = null;
   }
 
   // Document Modal

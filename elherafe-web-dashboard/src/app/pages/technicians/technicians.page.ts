@@ -28,7 +28,8 @@ type BlockModalState = {
   open: boolean;
   technician: any | null;
   durationType: BlockDurationType;
-  days: number;
+  suspendTo: string;
+  suspensionReason: string;
 };
 
 type BlockStatusPayload = {
@@ -73,7 +74,8 @@ export class TechniciansPage implements OnInit {
     open: false,
     technician: null,
     durationType: 'temporary',
-    days: 7
+    suspendTo: '',
+    suspensionReason: ''
   };
   sidebarOpen = false;
 
@@ -207,11 +209,15 @@ export class TechniciansPage implements OnInit {
   }
 
   openBlockModal(tech: any) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 59, 0);
     this.blockModal = {
       open: true,
       technician: tech,
       durationType: 'temporary',
-      days: 7
+      suspendTo: this.formatDateTimeLocal(tomorrow),
+      suspensionReason: ''
     };
   }
 
@@ -220,7 +226,8 @@ export class TechniciansPage implements OnInit {
       open: false,
       technician: null,
       durationType: 'temporary',
-      days: 7
+      suspendTo: '',
+      suspensionReason: ''
     };
   }
 
@@ -228,14 +235,32 @@ export class TechniciansPage implements OnInit {
     if (!this.blockModal.technician) {
       return;
     }
+
+    if (this.blockModal.durationType === 'temporary') {
+      if (!this.blockModal.suspendTo) {
+        this.notificationService.error('الرجاء تحديد تاريخ نهاية الحظر');
+        return;
+      }
+      const selectedDate = new Date(this.blockModal.suspendTo);
+      const now = new Date();
+      if (selectedDate <= now) {
+        this.notificationService.error('تاريخ نهاية الحظر يجب أن يكون في المستقبل');
+        return;
+      }
+    }
+
+    if (!this.blockModal.suspensionReason.trim()) {
+      this.notificationService.error('الرجاء إدخال سبب الحظر');
+      return;
+    }
+
     const payload: BlockStatusPayload = {
       isBlocked: true,
-      suspensionReason: 'Violation of terms'
+      suspensionReason: this.blockModal.suspensionReason
     };
     if (this.blockModal.durationType === 'temporary') {
-      const now = new Date();
-      const suspendTo = new Date(now.getTime() + this.blockModal.days * 24 * 60 * 60 * 1000).toISOString();
-      payload.suspendTo = suspendTo;
+      const suspendDate = new Date(this.blockModal.suspendTo);
+      payload.suspendTo = suspendDate.toISOString();
     }
     this.sendBlockRequest(this.blockModal.technician, payload);
   }
@@ -318,5 +343,18 @@ export class TechniciansPage implements OnInit {
     closeConfirmDialog() {
       this.confirmDialog = { ...this.confirmDialog, open: false };
       this.confirmDialogAction = null;
+    }
+
+    formatDateTimeLocal(date: Date): string {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    get minDateTime(): string {
+      return this.formatDateTimeLocal(new Date());
     }
 }

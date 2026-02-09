@@ -143,18 +143,34 @@
                 <input type="radio" class="text-blue-600" name="blockDuration" value="temporary" [(ngModel)]="blockModal.durationType">
                 <span>حظر مؤقت</span>
             </label>
-            <div class="pl-6" *ngIf="blockModal.durationType === 'temporary'">
-                <label class="block text-xs text-gray-500 mb-1">عدد الأيام</label>
-                <input type="number" min="1" max="90" [(ngModel)]="blockModal.days" class="w-24 border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div class="pr-6 space-y-3" *ngIf="blockModal.durationType === 'temporary'">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">تاريخ نهاية الحظر</label>
+                    <input 
+                        type="datetime-local" 
+                        [(ngModel)]="blockModal.suspendTo" 
+                        [min]="minDateTime"
+                        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    />
+                </div>
             </div>
             <label class="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="radio" class="text-blue-600" name="blockDuration" value="permanent" [(ngModel)]="blockModal.durationType">
                 <span>حظر دائم</span>
             </label>
+            <div class="mt-3">
+                <label class="block text-xs text-gray-500 mb-1">سبب الحظر</label>
+                <textarea 
+                    [(ngModel)]="blockModal.suspensionReason" 
+                    class="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" 
+                    rows="3"
+                    placeholder="أدخل سبب الحظر..."
+                ></textarea>
+            </div>
         </div>
         <div class="mt-6 flex justify-end gap-2">
             <button class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md" (click)="closeBlockModal()">إلغاء</button>
-            <button class="px-4 py-2 text-sm bg-[#3775FA] text-white rounded-md" (click)="confirmBlockModal()">تأكيد</button>
+            <button class="px-4 py-2 text-sm bg-[#3775FA] text-white rounded-md hover:bg-blue-600" (click)="confirmBlockModal()">تأكيد</button>
         </div>
     </div>
 </div>

@@ -28,8 +28,29 @@
             <!-- Breadcrumb Description -->
             <p class="text-gray-500 mt-1 text-xs">كل بيانات الفنيين، وثائقهم، وحالة حسابهم في مكان واحد</p>
             
-            <!-- Export + Search -->
-            <div class="mt-3 flex items-center justify-start flex-wrap gap-3">
+            <!-- Filters + Search -->
+            <div class="mt-3 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                    <button
+                        (click)="selectTab('pending')"
+                        [class]="activeTab === 'pending' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
+                        class="px-3 py-1.5 text-xs rounded-md transition">
+                        قيد الانتظار
+                    </button>
+                    <button
+                        (click)="selectTab('rejected')"
+                        [class]="activeTab === 'rejected' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
+                        class="px-3 py-1.5 text-xs rounded-md transition">
+                        مرفوض
+                    </button>
+                    <button
+                        (click)="selectTab('blocked')"
+                        [class]="activeTab === 'blocked' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
+                        class="px-3 py-1.5 text-xs rounded-md transition">
+                        محظور
+                    </button>
+                </div>
+
                 <div class="relative w-[303px]">
                     <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#727070]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -102,9 +123,27 @@
                                     </button>
                                 </div>
                                 } @else if (request.status === 'rejected') {
-                                <span class="text-xs text-red-600">سبب الرفض: {{ getRejectionReason(request) }}</span>
+                                <button
+                                    type="button"
+                                    class="px-3 py-1 text-xs rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition"
+                                    (click)="openReasonDialog('rejected')">
+                                    سبب الرفض
+                                </button>
                                 } @else if (request.status === 'blocked') {
-                                <span class="text-xs text-orange-600">سبب الحظر: {{ getBlockReason(request) }}</span>
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        class="px-3 py-1 text-xs rounded-md border border-orange-200 text-orange-600 hover:bg-orange-50 transition"
+                                        (click)="openReasonDialog('blocked')">
+                                        سبب الحظر
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="px-3 py-1 text-xs rounded-md border border-green-200 text-green-600 hover:bg-green-50 transition"
+                                        (click)="unblockTechnician(request)">
+                                        رفع الحظر
+                                    </button>
+                                </div>
                                 } @else {
                                 <span class="text-gray-400 text-xs">—</span>
                                 }
@@ -318,4 +357,34 @@
         </div>
     </div>
 </div>
+}
+
+<!-- Reason Dialog -->
+@if (isReasonDialogOpen) {
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="closeReasonDialog()">
+    <div class="bg-white rounded-xl shadow-2xl w-[420px] overflow-hidden" dir="rtl" (click)="$event.stopPropagation()">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">{{ reasonDialogTitle }}</h2>
+            <button (click)="closeReasonDialog()" class="p-1.5 hover:bg-gray-100 rounded-full transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="p-4 text-sm text-gray-600">
+            {{ reasonDialogMessage }}
+        </div>
+    </div>
+</div>
+}
+
+<!-- Unblock Confirmation Dialog -->
+@if (isUnblockDialogOpen && requestToUnblock) {
+<app-confirmation-dialog
+    title="تأكيد رفع الحظر"
+    message="هل أنت متأكد من رفع الحظر عن هذا الفني؟"
+    confirmLabel="رفع الحظر"
+    cancelLabel="إلغاء"
+    variant="primary"
+    (confirm)="confirmUnblock()"
+    (cancel)="cancelUnblock()"
+/>
 }
