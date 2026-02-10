@@ -73,7 +73,7 @@
                                     <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">تاريخ التسجيل</th>
                                     <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">عدد المعاملات</th>
                                     <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">آخر معاملة</th>
-                                    <th class="py-3.5 px-4 text-center font-normal border-b border-[#5B8DEF]">الإجراءات</th>
+                                    <th class="py-3.5 px-4 text-center font-normal border-b border-[#5B8DEF]"></th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
@@ -119,7 +119,7 @@
                                                 class="flex items-center gap-2 px-3 h-9 bg-[#F7F8FA] border border-[#E8EAEE] rounded-lg hover:bg-gray-200 transition"
                                                 title="رفع الحظر"
                                             >
-                                                <span class="text-xs font-medium text-black">الغاء الحظر</span>
+                                                <span class="text-sm font-medium text-black">الغاء الحظر</span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                     <path d="M10.0001 18.3334C14.6025 18.3334 18.3334 14.6024 18.3334 10C18.3334 5.39765 14.6025 1.66669 10.0001 1.66669C5.39771 1.66669 1.66675 5.39765 1.66675 10C1.66675 14.6024 5.39771 18.3334 10.0001 18.3334Z" stroke="#6B7280" stroke-width="1.66667"/>
                                                     <path d="M4.16675 15.8334L15.8334 4.16669" stroke="#6B7280" stroke-width="1.66667"/>
@@ -168,27 +168,101 @@
 </div>
 
 @if (blockModal.open) {
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" dir="rtl">
-    <div class="bg-white rounded-2xl w-full max-w-md p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-2">إعدادات حظر المستخدم</h2>
-        <p class="text-sm text-gray-500 mb-4">حدد ما إذا كان الحظر مؤقتاً أو دائماً.</p>
-        <div class="space-y-3">
-            <label class="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="radio" class="text-blue-600" name="userBlockDuration" value="temporary" [(ngModel)]="blockModal.durationType">
-                <span>حظر مؤقت</span>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" dir="rtl">
+    <div class="relative bg-white w-full max-w-lg p-6 rounded-[24px] border border-[#3775FA] shadow-2xl">
+        
+        <!-- Close Button -->
+        <button 
+            type="button"
+            class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg border-2 border-[#3775FA] text-gray-400 hover:bg-gray-50 transition"
+            (click)="closeBlockModal()"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <h2 class="text-xl font-medium text-gray-900 mb-6 text-right">مدة الحظر</h2>
+
+        <!-- Radio Selection Group -->
+        <div class="space-y-3 mb-8">
+            <label 
+                class="flex items-center justify-between p-4 rounded-2xl cursor-pointer transition"
+                [class.bg-gray-50]="blockModal.durationType !== 'permanent'"
+                [class.border]="blockModal.durationType !== 'permanent'"
+                [class.border-gray-200]="blockModal.durationType !== 'permanent'"
+                [class.bg-white]="blockModal.durationType === 'permanent'"
+                [class.border-2]="blockModal.durationType === 'permanent'"
+                [class.border-[#3775FA]]="blockModal.durationType === 'permanent'"
+            >
+                <span 
+                    class="text-base font-medium"
+                    [class.text-gray-400]="blockModal.durationType !== 'permanent'"
+                    [class.text-gray-900]="blockModal.durationType === 'permanent'"
+                >حظر دائم</span>
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                     [class.border-gray-300]="blockModal.durationType !== 'permanent'"
+                     [class.border-[#3775FA]]="blockModal.durationType === 'permanent'"
+                >
+                    <div *ngIf="blockModal.durationType === 'permanent'" class="w-2.5 h-2.5 bg-[#3775FA] rounded-full"></div>
+                </div>
+                <input type="radio" class="hidden" name="userBlockDuration" value="permanent" [(ngModel)]="blockModal.durationType">
             </label>
-            <div class="pl-6" *ngIf="blockModal.durationType === 'temporary'">
-                <label class="block text-xs text-gray-500 mb-1">عدد الأيام</label>
-                <input type="number" min="1" max="90" [(ngModel)]="blockModal.days" class="w-24 border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <label class="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="radio" class="text-blue-600" name="userBlockDuration" value="permanent" [(ngModel)]="blockModal.durationType">
-                <span>حظر دائم</span>
+
+            <label 
+                class="flex items-center justify-between p-4 rounded-2xl cursor-pointer transition"
+                [class.bg-gray-50]="blockModal.durationType !== 'temporary'"
+                [class.border]="blockModal.durationType !== 'temporary'"
+                [class.border-gray-200]="blockModal.durationType !== 'temporary'"
+                [class.bg-white]="blockModal.durationType === 'temporary'"
+                [class.border-2]="blockModal.durationType === 'temporary'"
+                [class.border-[#3775FA]]="blockModal.durationType === 'temporary'"
+            >
+                <span 
+                    class="text-base font-medium"
+                    [class.text-gray-400]="blockModal.durationType !== 'temporary'"
+                    [class.text-gray-900]="blockModal.durationType === 'temporary'"
+                >حظر مؤقت</span>
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                     [class.border-gray-300]="blockModal.durationType !== 'temporary'"
+                     [class.border-[#3775FA]]="blockModal.durationType === 'temporary'"
+                >
+                    <div *ngIf="blockModal.durationType === 'temporary'" class="w-2.5 h-2.5 bg-[#3775FA] rounded-full"></div>
+                </div>
+                <input type="radio" class="hidden" name="userBlockDuration" value="temporary" [(ngModel)]="blockModal.durationType">
             </label>
         </div>
-        <div class="mt-6 flex justify-end gap-2">
-            <button class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md" (click)="closeBlockModal()">إلغاء</button>
-            <button class="px-4 py-2 text-sm bg-[#3775FA] text-white rounded-md" (click)="confirmBlockModal()">تأكيد</button>
+
+        <!-- Date Picker Section -->
+        <div *ngIf="blockModal.durationType === 'temporary'">
+            <h3 class="text-lg font-normal text-gray-900 mb-3 text-right">حدد المدة</h3>
+            <div class="relative flex items-start p-4 border-2 border-[#3775FA] rounded-2xl mb-10">
+                <input 
+                    type="date" 
+                    [(ngModel)]="blockModal.suspendTo"
+                    [min]="minDate"
+                    class="flex-1 text-gray-900 font-medium text-left bg-transparent outline-none"
+                />
+                
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 px-4">
+            <button 
+                type="button"
+                class="flex-1 py-2 rounded-xl bg-[#3775FA] text-white font-medium hover:bg-blue-600 transition"
+                (click)="confirmBlockModal()"
+            >
+                حظر
+            </button>
+            <button 
+                type="button"
+                class="flex-1 py-2 rounded-xl border border-[#3775FA] text-gray-700 font-medium hover:bg-blue-50 transition"
+                (click)="closeBlockModal()"
+            >
+                الغاء
+            </button>
         </div>
     </div>
 </div>

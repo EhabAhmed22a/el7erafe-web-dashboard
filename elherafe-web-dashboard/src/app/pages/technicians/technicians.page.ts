@@ -187,9 +187,10 @@ export class TechniciansPage implements OnInit {
   deleteTechnician(id: string) {
     this.openConfirmDialog(
       {
-        title: 'حذف الفني',
-        message: 'هل أنت متأكد من حذف هذا الفني؟',
-        confirmLabel: 'حذف',
+        title: 'هل أنت متأكد إنك عايز تمسح الفني ده؟',
+        message: '',
+        confirmLabel: 'مسح',
+        cancelLabel: 'الغاء',
         variant: 'danger'
       },
       () => {
@@ -211,12 +212,11 @@ export class TechniciansPage implements OnInit {
   openBlockModal(tech: any) {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(23, 59, 59, 0);
     this.blockModal = {
       open: true,
       technician: tech,
       durationType: 'temporary',
-      suspendTo: this.formatDateTimeLocal(tomorrow),
+      suspendTo: tomorrow.toISOString().split('T')[0],
       suspensionReason: ''
     };
   }
@@ -249,19 +249,17 @@ export class TechniciansPage implements OnInit {
       }
     }
 
-    if (!this.blockModal.suspensionReason.trim()) {
-      this.notificationService.error('الرجاء إدخال سبب الحظر');
-      return;
-    }
-
     const payload: BlockStatusPayload = {
       isBlocked: true,
-      suspensionReason: this.blockModal.suspensionReason
+      suspensionReason: 'Violation of terms'
     };
+
     if (this.blockModal.durationType === 'temporary') {
-      const suspendDate = new Date(this.blockModal.suspendTo);
-      payload.suspendTo = suspendDate.toISOString();
+      const selectedDate = new Date(this.blockModal.suspendTo);
+      selectedDate.setHours(23, 59, 59, 999);
+      payload.suspendTo = selectedDate.toISOString();
     }
+
     this.sendBlockRequest(this.blockModal.technician, payload);
   }
 
@@ -354,7 +352,9 @@ export class TechniciansPage implements OnInit {
       return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
-    get minDateTime(): string {
-      return this.formatDateTimeLocal(new Date());
+    get minDate(): string {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
     }
 }

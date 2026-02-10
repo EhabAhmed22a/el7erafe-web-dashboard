@@ -1,23 +1,50 @@
-<div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" dir="rtl">
-    <div>
-      <h2 class="text-lg font-semibold text-gray-900">{{ title }}</h2>
-      <p class="mt-2 text-sm text-gray-600" *ngIf="message">{{ message }}</p>
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" dir="rtl">
+  <div class="relative bg-white w-full max-w-lg p-8 rounded-[24px] border border-[#3775FA] shadow-xl flex flex-col items-center">
+    
+    <!-- Close Button -->
+    <button 
+      type="button"
+      class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg border-1 border-[#3775FA] text-gray-400 hover:bg-gray-50 transition"
+      (click)="onCancel()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Icon Header with Pulse Effect -->
+    <div class="relative mb-10 mt-5 flex items-center justify-center">
+      <div class="absolute w-28 h-28 bg-red-50 rounded-full"></div>
+      <div class="absolute w-20 h-20 bg-red-200 rounded-full"></div>
+      <div class="relative w-14 h-14 bg-red-200 border-2 border-black rounded-full flex items-center justify-center font-bold text-2xl">!</div>
     </div>
-    <div class="flex justify-end gap-2">
-      <button
+
+    <!-- Title -->
+    <h2 class="text-xl font-medium text-gray-900 mb-8 text-center">
+      {{ title }}
+    </h2>
+
+    <!-- Message (if provided) -->
+    <p class="text-sm text-gray-600 mb-6 text-center" *ngIf="message">{{ message }}</p>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-4 w-full px-1">
+      <button 
         type="button"
-        [ngClass]="cancelClasses"
-        (click)="onCancel()"
-      >
-        {{ cancelLabel }}
-      </button>
-      <button
-        type="button"
-        [ngClass]="confirmClasses"
+        class="flex-1 py-2 rounded-lg bg-[#3775FA] text-white font-medium hover:bg-blue-600 transition"
         (click)="onConfirm()"
+        [disabled]="busy"
       >
         {{ confirmLabel }}
+      </button>
+
+      <button 
+        type="button"
+        class="flex-1 py-2 rounded-lg border border-[#3775FA] text-gray-700 font-medium hover:bg-blue-50 transition"
+        (click)="onCancel()"
+        [disabled]="busy"
+      >
+        {{ cancelLabel }}
       </button>
     </div>
   </div>

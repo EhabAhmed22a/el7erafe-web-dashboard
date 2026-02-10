@@ -24,7 +24,7 @@ type BlockModalState = {
   open: boolean;
   user: any | null;
   durationType: 'temporary' | 'permanent';
-  days: number;
+  suspendTo: string;
 };
 
 type BlockStatusPayload = {
@@ -67,8 +67,14 @@ export class UsersPage implements OnInit {
     open: false,
     user: null,
     durationType: 'temporary',
-    days: 7
+    suspendTo: ''
   };
+
+  get minDate(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
 
   get filteredUsers() {
     if (!this.searchQuery.trim()) return this.users;
@@ -132,9 +138,10 @@ export class UsersPage implements OnInit {
   deleteUser(id: string) {
     this.openConfirmDialog(
       {
-        title: 'حذف المستخدم',
-        message: 'هل أنت متأكد من حذف هذا المستخدم؟',
-        confirmLabel: 'حذف',
+        title: 'هل أنت متأكد إنك عايز تمسح المستخدم ده؟',
+        message: '',
+        confirmLabel: 'مسح',
+        cancelLabel: 'الغاء',
         variant: 'danger'
       },
       () => {
@@ -164,11 +171,13 @@ export class UsersPage implements OnInit {
 
 
   blockUser(user: any) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     this.blockModal = {
       open: true,
       user,
       durationType: 'temporary',
-      days: 7
+      suspendTo: tomorrow.toISOString().split('T')[0]
     };
   }
 
@@ -177,7 +186,7 @@ export class UsersPage implements OnInit {
       open: false,
       user: null,
       durationType: 'temporary',
-      days: 7
+      suspendTo: ''
     };
   }
 
@@ -185,13 +194,29 @@ export class UsersPage implements OnInit {
     if (!this.blockModal.user) {
       return;
     }
+
+    if (this.blockModal.durationType === 'temporary') {
+      if (!this.blockModal.suspendTo) {
+        this.notificationService.error('الرجاء تحديد تاريخ نهاية الحظر');
+        return;
+      }
+      const selectedDate = new Date(this.blockModal.suspendTo);
+      const now = new Date();
+      if (selectedDate <= now) {
+        this.notificationService.error('تاريخ نهاية الحظر يجب أن يكون في المستقبل');
+        return;
+      }
+    }
+
     const payload: BlockStatusPayload = {
       isBlocked: true,
       suspensionReason: 'Violation of terms'
     };
+
     if (this.blockModal.durationType === 'temporary') {
-      const now = new Date();
-      payload.suspendTo = new Date(now.getTime() + this.blockModal.days * 24 * 60 * 60 * 1000).toISOString();
+      const selectedDate = new Date(this.blockModal.suspendTo);
+      selectedDate.setHours(23, 59, 59, 999);
+      payload.suspendTo = selectedDate.toISOString();
     }
 
     this.usersService.blockOrUnblockUser(this.blockModal.user.id, payload)

@@ -33,6 +33,7 @@ interface RejectionData {
   invalidFrontId: boolean;
   invalidBackId: boolean;
   invalidCriminalRecord: boolean;
+  hasCustomReason: boolean;
   reason: string;
   customReason: string;
 }
@@ -62,6 +63,7 @@ export class RequestsPage implements OnInit {
     invalidFrontId: false,
     invalidBackId: false,
     invalidCriminalRecord: false,
+    hasCustomReason: false,
     reason: '',
     customReason: ''
   };
@@ -93,6 +95,7 @@ export class RequestsPage implements OnInit {
   readonly pageSizeOptions = [5, 10, 20, 50];
   rejectionReasons: string[] = [];
   rejectionReasonsLoading = false;
+  selectedReasons: string[] = [];
 
   constructor(
     private requestsService: RequestsService,
@@ -264,10 +267,12 @@ export class RequestsPage implements OnInit {
   // Rejection Modal
   openRejectModal(request: TechnicianRequest) {
     this.requestToReject = request;
+    this.selectedReasons = [];
     this.rejectionData = {
       invalidFrontId: false,
       invalidBackId: false,
       invalidCriminalRecord: false,
+      hasCustomReason: false,
       reason: this.rejectionReasons[0] ?? '',
       customReason: ''
     };
@@ -277,6 +282,16 @@ export class RequestsPage implements OnInit {
   closeRejectModal() {
     this.isRejectModalOpen = false;
     this.requestToReject = null;
+    this.selectedReasons = [];
+  }
+
+  toggleReason(reason: string) {
+    const index = this.selectedReasons.indexOf(reason);
+    if (index > -1) {
+      this.selectedReasons.splice(index, 1);
+    } else {
+      this.selectedReasons.push(reason);
+    }
   }
 
   confirmReject() {
@@ -284,15 +299,29 @@ export class RequestsPage implements OnInit {
       return;
     }
 
-    const resolvedReason = (this.rejectionData.customReason || this.rejectionData.reason).trim();
-    if (!resolvedReason) {
+    // Build the rejection reason from selected reasons and custom reason
+    let rejectionReason = '';
+    
+    if (this.selectedReasons.length > 0) {
+      rejectionReason = this.selectedReasons.join(', ');
+    }
+    
+    if (this.rejectionData.customReason.trim()) {
+      if (rejectionReason) {
+        rejectionReason += ', ' + this.rejectionData.customReason.trim();
+      } else {
+        rejectionReason = this.rejectionData.customReason.trim();
+      }
+    }
+
+    if (!rejectionReason) {
       this.notificationService.error('يرجى اختيار سبب الرفض أو إدخال سبب مخصص');
       return;
     }
 
     const payload: RejectTechnicianPayload = {
       id: this.requestToReject.id,
-      rejectionReason: resolvedReason,
+      rejectionReason: rejectionReason,
       is_front_rejected: this.rejectionData.invalidFrontId,
       is_back_rejected: this.rejectionData.invalidBackId,
       is_criminal_rejected: this.rejectionData.invalidCriminalRecord
