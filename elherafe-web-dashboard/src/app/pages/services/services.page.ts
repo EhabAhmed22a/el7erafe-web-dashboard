@@ -37,11 +37,13 @@ export class ServicesPage implements OnInit {
   // Modal states
   isAddEditModalOpen = false;
   isDeleteModalOpen = false;
+  isViewModalOpen = false;
   isEditMode = false;
 
   // Modal data
   modalService: Service = { id: '', icon: '', nameAr: '' };
   serviceToDelete: Service | null = null;
+  viewService: Service | null = null;
 
   services: Service[] = [];
   loading = false;
@@ -141,6 +143,17 @@ export class ServicesPage implements OnInit {
     this.isAddEditModalOpen = false;
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+  }
+
+  // View Modal
+  openViewModal(service: Service) {
+    this.viewService = { ...service };
+    this.isViewModalOpen = true;
+  }
+
+  closeViewModal() {
+    this.isViewModalOpen = false;
+    this.viewService = null;
   }
 
   saveService() {
