@@ -305,12 +305,12 @@
 <!-- Rejection Modal -->
 @if (isRejectModalOpen) {
 <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="closeRejectModal()">
-    <div class="relative bg-white w-full max-w-2xl p-8 rounded-[24px] border border-[#3775FA] shadow-2xl" dir="rtl" (click)="$event.stopPropagation()">
+    <div class="relative bg-gray-50 w-full max-w-xl p-6 rounded-[24px] border border-[#3775FA] shadow-2xl max-h-[90vh] overflow-y-auto" dir="rtl" (click)="$event.stopPropagation()">
         
         <!-- Close Button -->
         <button 
             type="button"
-            class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg border-2 border-[#3775FA] text-gray-400 hover:bg-gray-50 transition"
+            class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg border-2 border-[#3775FA] text-gray-400 hover:bg-gray-100 transition"
             (click)="closeRejectModal()"
         >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -319,74 +319,73 @@
         </button>
 
         <!-- Header with Icon -->
-        <div class="flex items-center justify-start gap-3 mb-6">
-            <h2 class="text-xl font-bold text-gray-900 ">سبب الرفض</h2>
-            <div class="w-7 h-7 rounded-full border-2 border-red-500 text-red-500 flex items-center justify-center font-bold text-sm flex-shrink-0">!</div>
+        <div class="flex items-center justify-start gap-3 mb-5">
+            <h2 class="text-lg font-bold text-gray-900">سبب الرفض</h2>
+            <div class="w-6 h-6 rounded-full border-2 border-red-500 text-red-500 flex items-center justify-center font-bold text-xs flex-shrink-0">!</div>
         </div>
 
-        <!-- First Checkbox Group -->
-        <div class="mb-6">
-            <h3 class="text-sm font-bold mb-3 text-gray-700">حدد سبب الرفض</h3>
-            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-5 space-y-4">
-                <label class="flex items-center justify-between cursor-pointer group">
+        <!-- First Checkbox Group - Document Images -->
+        <div class="mb-4">
+            <h3 class="text-sm font-bold mb-2 text-gray-700">حدد سبب الرفض</h3>
+            <div class="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" [(ngModel)]="rejectionData.invalidFrontId" class="w-4 h-4 rounded cursor-pointer">
                     <span class="text-gray-600 text-sm">صورة البطاقة الأمامية</span>
-                    <input type="checkbox" [(ngModel)]="rejectionData.invalidFrontId" class="w-4 h-4 border-2 border-gray-300 rounded text-[#3775FA] focus:ring-0 focus:ring-offset-0 checked:border-[#3775FA]">
                 </label>
-                <label class="flex items-center justify-between cursor-pointer group">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" [(ngModel)]="rejectionData.invalidBackId" class="w-4 h-4 rounded cursor-pointer">
                     <span class="text-gray-600 text-sm">صورة البطاقة الخلفية</span>
-                    <input type="checkbox" [(ngModel)]="rejectionData.invalidBackId" class="w-4 h-4 border-2 border-gray-300 rounded text-[#3775FA] focus:ring-0 focus:ring-offset-0 checked:border-[#3775FA]">
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" [(ngModel)]="rejectionData.invalidCriminalRecord" class="w-4 h-4 rounded cursor-pointer">
+                    <span class="text-gray-600 text-sm">صورة الفيش الجنائي</span>
                 </label>
             </div>
         </div>
 
-        <!-- Second Checkbox Group -->
-        <div class="mb-6">
-            <h3 class="text-sm font-bold mb-3 text-gray-700">حدد تفاصيل الرفض</h3>
-            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-5 space-y-4">
-                <label class="flex items-center justify-between cursor-pointer group">
-                    <span class="text-gray-600 text-sm">صورة الفيش الجنائي</span>
-                    <input type="checkbox" [(ngModel)]="rejectionData.invalidCriminalRecord" class="w-4 h-4 border-2 border-gray-300 rounded text-[#3775FA] focus:ring-0 focus:ring-offset-0 checked:border-[#3775FA]">
-                </label>
-                
+        <!-- Second Checkbox Group - API Reasons -->
+        <div class="mb-4">
+            <h3 class="text-sm font-bold mb-2 text-gray-700">حدد تفاصيل الرفض</h3>
+            <div class="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
                 @if (rejectionReasonsLoading) {
-                    <div class="flex items-center justify-center py-3">
+                    <div class="flex items-center justify-center py-2">
                         <div class="w-5 h-5 border-2 border-[#3775FA] border-t-transparent rounded-full animate-spin"></div>
                         <span class="mr-2 text-sm text-gray-500">جاري التحميل...</span>
                     </div>
                 }
                 
                 @for (reason of rejectionReasons; track reason) {
-                    <label class="flex items-center justify-between cursor-pointer group">
-                        <span class="text-gray-600 text-sm">{{ reason }}</span>
+                    <label class="flex items-center gap-3 cursor-pointer group">
                         <input 
                             type="checkbox" 
                             [checked]="selectedReasons.includes(reason)"
                             (change)="toggleReason(reason)"
-                            class="w-4 h-4 border-2 border-gray-300 rounded text-[#3775FA] focus:ring-0 focus:ring-offset-0 checked:border-[#3775FA]"
+                            class="w-4 h-4 rounded cursor-pointer"
                         >
+                        <span class="text-gray-600 text-sm">{{ reason }}</span>
                     </label>
                 }
                 
-                <label class="flex items-center justify-between cursor-pointer group">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" [(ngModel)]="rejectionData.hasCustomReason" class="w-4 h-4 rounded cursor-pointer">
                     <span class="text-gray-600 text-sm">أخرى</span>
-                    <input type="checkbox" [(ngModel)]="rejectionData.hasCustomReason" class="w-4 h-4 border-2 border-gray-300 rounded text-[#3775FA] focus:ring-0 focus:ring-offset-0 checked:border-[#3775FA]">
                 </label>
             </div>
         </div>
 
         <!-- Details Input -->
-        <div class="mb-10">
-            <label class="block text-sm font-bold mb-3 text-gray-700">التفاصيل</label>
+        <div class="mb-6">
+            <label class="block text-sm font-bold mb-2 text-gray-700">التفاصيل</label>
             <input 
                 type="text" 
                 [(ngModel)]="rejectionData.customReason"
                 placeholder="ادخل التفاصيل" 
-                class="w-full p-4 bg-white border border-gray-200 rounded-xl focus:border-[#3775FA] focus:outline-none placeholder-gray-300 text-gray-900"
+                class="w-full p-3 bg-white border border-gray-300 rounded-xl focus:border-[#3775FA] focus:outline-none placeholder-gray-400 text-gray-900"
             />
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-4 px-4">
+        <div class="flex gap-3 px-2">
             <button 
                 type="button"
                 class="flex-1 py-2 rounded-xl bg-[#3775FA] text-white font-medium hover:bg-blue-600 transition"
