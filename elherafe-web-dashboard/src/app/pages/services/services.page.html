@@ -22,7 +22,8 @@
         }
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 bg-white overflow-auto m-3 rounded-2xl text-sm">
+        <main class="p-4 bg-white overflow-auto m-3 rounded-2xl text-sm flex-grow">
+            <div class="w-full h-fit">
             <h1 class="text-xl text-blue-700">الخدمات</h1>
             <!-- Breadcrumb Description -->
             <p class="text-gray-500 mt-1 text-md">إدارة خدمات التطبيق  وإضافة خدمات أخرى</p>
@@ -77,16 +78,6 @@
 
                                         <!-- Service Name -->
                                         <h3 (click)="openViewModal(service)" class="text-center font-medium text-gray-800 text-lg mb-1 cursor-pointer">{{ service.nameAr }}</h3>
-                    
-                    <!-- Action Buttons -->
-                    <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                        <button (click)="openEditModal(service)" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition" title="تعديل">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                        </button>
-                        <button (click)="openDeleteModal(service)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition" title="حذف">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                        </button>
-                    </div>
                 </div>
                 }
                 </div>
@@ -115,6 +106,7 @@
                 <p>لا توجد نتائج للبحث</p>
             </div>
             }
+            </div>
         </main>
     </div>
 </div>
@@ -193,7 +185,7 @@
 <!-- View Service Modal -->
 @if (isViewModalOpen) {
 <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" dir="rtl" (click)="closeViewModal()">
-    <div class="relative bg-white w-full max-w-md p-8 rounded-[24px] border border-[#3775FA] shadow-xl flex flex-col items-center" (click)="$event.stopPropagation()">
+    <div class="relative bg-white w-full max-w-3xl p-8 rounded-[24px] border border-[#3775FA] shadow-2xl" (click)="$event.stopPropagation()">
         
         <!-- Close Button -->
         <button 
@@ -206,29 +198,157 @@
             </svg>
         </button>
 
-        <!-- Service Image -->
-        <div class="w-32 h-32 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 overflow-hidden border-4 border-[#3775FA]">
-            <ng-container *ngIf="viewService?.imageSrc; else noViewImg">
-                <img [src]="viewService.imageSrc" alt="صورة المهنة" class="w-full h-full object-cover" />
-            </ng-container>
-            <ng-template #noViewImg>
-                <span class="text-5xl">{{ viewService?.icon || (viewService?.nameAr ? viewService.nameAr.charAt(0) : '⚒️') }}</span>
-            </ng-template>
+        <!-- Header -->
+        <div class="flex items-center justify-start gap-2 mb-8">
+            <h2 class="text-xl font-bold text-gray-800">عرض الخدمه</h2>
+            <svg class="w-6 h-6 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
         </div>
 
-        <!-- Service Name -->
-        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
-            {{ viewService?.nameAr }}
-        </h2>
+        <!-- Service Name (Read-only) -->
+        <div class="mb-6">
+            <label class="block text-sm font-bold mb-2 text-gray-700">اسم الخدمه</label>
+            <div class="w-full p-4 bg-white border border-gray-100 rounded-2xl text-gray-500">
+                {{ viewService?.nameAr }}
+            </div>
+        </div>
 
+        <!-- File Preview Card -->
+        <div class="mb-10 p-4 border border-gray-100 rounded-2xl flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+                    <ng-container *ngIf="viewService?.imageSrc; else noViewImgCard">
+                        <img [src]="viewService?.imageSrc" alt="صورة الخدمة" class="w-full h-full object-cover" />
+                    </ng-container>
+                    <ng-template #noViewImgCard>
+                        <div class="w-full h-full bg-blue-50 flex items-center justify-center">
+                            <span class="text-lg">{{ viewService?.nameAr?.charAt(0) }}</span>
+                        </div>
+                    </ng-template>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-800">{{ viewService?.nameAr }}.jpg</p>
+                    <p class="text-xs text-gray-400">صورة الخدمة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+            <button 
+                type="button"
+                class="flex-1 py-3 rounded-xl border-2 border-[#3775FA] text-gray-700 hover:bg-red-50 hover:text-red-600 transition font-medium"
+                (click)="openDeleteModalFromView()"
+            >
+                حذف
+            </button>
+            
+            <button 
+                type="button"
+                class="flex-1 py-3 rounded-xl bg-[#3775FA] text-white hover:bg-blue-600 transition font-medium"
+                (click)="openEditModalFromView()"
+            >
+                تعديل
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Edit Service Modal (Minimalist) -->
+@if (isEditModalOpen) {
+<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" dir="rtl" (click)="closeEditModal()">
+    <div class="relative bg-white w-full max-w-2xl p-8 rounded-[24px] border border-[#3775FA] shadow-2xl" (click)="$event.stopPropagation()">
+        
         <!-- Close Button -->
         <button 
             type="button"
-            class="w-full py-3 rounded-xl bg-[#3775FA] text-white font-medium hover:bg-blue-600 transition"
-            (click)="closeViewModal()"
+            class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg border-2 border-[#3775FA] text-gray-400 hover:bg-gray-50 transition"
+            (click)="closeEditModal()"
         >
-            إغلاق
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
         </button>
+
+        <!-- Header -->
+        <div class="flex items-center justify-start gap-2 mb-8">
+            <h2 class="text-xl font-bold text-gray-800">تعديل الخدمه</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#3775FA]">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+            </svg>
+        </div>
+
+        <!-- Service Name Input -->
+        <div class="mb-6">
+            <label class="block text-sm font-bold mb-2 text-gray-700">اسم الخدمه</label>
+            <input 
+                type="text" 
+                [(ngModel)]="modalService.nameAr"
+                placeholder="مثلا : سباك , نجار" 
+                class="w-full p-4 bg-white border border-gray-200 rounded-2xl focus:border-[#3775FA] focus:outline-none placeholder-gray-300"
+            />
+        </div>
+
+        <!-- Image Upload/Preview -->
+        <div class="mb-10">
+            <label class="block text-sm font-bold mb-2 text-gray-700">صورة الخدمة</label>
+            
+            @if (selectedImagePreview || modalService.imageSrc) {
+                <!-- Image Preview -->
+                <div class="p-4 border border-gray-100 rounded-2xl flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+                            <img [src]="selectedImagePreview || modalService.imageSrc" alt="صورة الخدمة" class="w-full h-full object-cover" />
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-gray-800">{{ selectedImageFile?.name || (modalService.nameAr + '.jpg') }}</p>
+                            <p class="text-xs text-gray-400">{{ selectedImageFile ? (selectedImageFile.size / 1024 | number:'1.0-0') + 'kb' : 'صورة الخدمة' }}</p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="removeImage()" class="text-red-500 hover:text-red-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            }
+            
+            <!-- Upload Button -->
+            <label class="block w-full p-4 border-2 border-dashed border-[#3775FA] rounded-2xl text-center cursor-pointer hover:bg-blue-50/30 transition">
+                <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
+                <div class="flex flex-col items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#3775FA]">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p class="text-sm text-gray-600">اختر صورة جديدة</p>
+                </div>
+            </label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+            <button 
+                type="button"
+                class="flex-1 py-3 rounded-xl border-2 border-[#3775FA] text-gray-700 hover:bg-blue-50 transition font-medium"
+                (click)="closeEditModal()"
+            >
+                الغاء
+            </button>
+            
+            <button 
+                type="button"
+                class="flex-1 py-3 rounded-xl bg-[#3775FA] text-white hover:bg-blue-600 transition font-medium"
+                (click)="saveEditedService()"
+            >
+                حفظ
+            </button>
+        </div>
     </div>
 </div>
 }

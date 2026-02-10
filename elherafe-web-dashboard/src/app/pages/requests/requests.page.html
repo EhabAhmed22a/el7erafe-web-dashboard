@@ -23,7 +23,8 @@
         }
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 bg-white overflow-auto m-3 rounded-2xl text-sm">
+        <main class="p-4 bg-white overflow-auto m-3 rounded-2xl text-sm flex-grow">
+            <div class="w-full h-fit">
             <h1 class="text-xl text-blue-700 font-medium">طلبات التسجيل كحرفي</h1>
             <!-- Breadcrumb Description -->
             <p class="text-gray-500 mt-2 mb-4 text-sm">كل بيانات الفنيين، وثائقهم، وحالة حسابهم في مكان واحد</p>
@@ -198,6 +199,7 @@
                 (pageSizeChange)="onPageSizeChange($event)"
             ></app-pagination>
             }
+            </div>
         </main>
     </div>
 </div>

@@ -38,6 +38,7 @@ export class ServicesPage implements OnInit {
   isAddEditModalOpen = false;
   isDeleteModalOpen = false;
   isViewModalOpen = false;
+  isEditModalOpen = false;
   isEditMode = false;
 
   // Modal data
@@ -154,6 +155,79 @@ export class ServicesPage implements OnInit {
   closeViewModal() {
     this.isViewModalOpen = false;
     this.viewService = null;
+  }
+
+  openEditModalFromView() {
+    if (this.viewService) {
+      this.modalService = { ...this.viewService };
+      this.selectedImagePreview = this.viewService.imageSrc || null;
+      this.isViewModalOpen = false;
+      this.isEditModalOpen = true;
+    }
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+  }
+
+  saveEditedService() {
+    if (!this.modalService.id) return;
+
+    console.log('Saving service:', this.modalService);
+    console.log('Service name:', this.modalService.nameAr);
+    console.log('Selected image:', this.selectedImageFile);
+
+    const formData = new FormData();
+    
+    if (this.modalService.nameAr && this.modalService.nameAr.trim()) {
+      formData.append('service_name', this.modalService.nameAr.trim());
+      console.log('Appended service_name:', this.modalService.nameAr.trim());
+    }
+    
+    if (this.selectedImageFile) {
+      formData.append('service_image', this.selectedImageFile);
+      console.log('Appended service_image:', this.selectedImageFile.name);
+    }
+
+    // Log FormData contents
+    console.log('FormData entries:');
+    formData.forEach((value, key) => {
+      console.log(`  ${key}:`, value);
+    });
+
+    this.servicesService
+      .updateService(this.modalService.id, formData, true)
+      .subscribe({
+        next: () => {
+          this.fetchServices(this.pageNumber, this.pageSize);
+          this.closeEditModal();
+          this.notificationService.success('تم تحديث المهنة بنجاح');
+        },
+        error: (err) => {
+          console.error('Edit service error:', err);
+          const errorMessage = err.error?.message || err.error?.title || err.message || 'فشل في تعديل المهنة';
+          if (err.status === 409) {
+            alert('تعذر التعديل: قد يكون اسم الخدمة موجود مسبقاً\n\n' + errorMessage);
+          } else {
+            alert('فشل في تعديل المهنة: ' + errorMessage);
+          }
+        }
+      });
+  }
+
+  openDeleteModalFromView() {
+    if (this.viewService) {
+      this.serviceToDelete = this.viewService;
+      this.isViewModalOpen = false;
+      this.isDeleteModalOpen = true;
+    }
+  }
+
+  removeImage() {
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
   }
 
   saveService() {
