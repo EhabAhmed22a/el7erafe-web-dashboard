@@ -43,6 +43,7 @@ export class ServicesPage implements OnInit {
 
   // Modal data
   modalService: Service = { id: '', icon: '', nameAr: '' };
+  originalService: Service | null = null; // Store original for comparison
   serviceToDelete: Service | null = null;
   viewService: Service | null = null;
 
@@ -159,6 +160,7 @@ export class ServicesPage implements OnInit {
 
   openEditModalFromView() {
     if (this.viewService) {
+      this.originalService = { ...this.viewService }; // Store original
       this.modalService = { ...this.viewService };
       this.selectedImagePreview = this.viewService.imageSrc || null;
       this.isViewModalOpen = false;
@@ -170,32 +172,40 @@ export class ServicesPage implements OnInit {
     this.isEditModalOpen = false;
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+    this.originalService = null;
   }
 
   saveEditedService() {
-    if (!this.modalService.id) return;
-
-    console.log('Saving service:', this.modalService);
-    console.log('Service name:', this.modalService.nameAr);
-    console.log('Selected image:', this.selectedImageFile);
+    if (!this.modalService.id || !this.originalService) return;
 
     const formData = new FormData();
-    
-    if (this.modalService.nameAr && this.modalService.nameAr.trim()) {
+    let hasChanges = false;
+
+    // Check if name changed
+    const nameChanged = this.modalService.nameAr?.trim() !== this.originalService.nameAr?.trim();
+    const imageChanged = this.selectedImageFile !== null;
+
+    if (nameChanged && this.modalService.nameAr?.trim()) {
       formData.append('service_name', this.modalService.nameAr.trim());
-      console.log('Appended service_name:', this.modalService.nameAr.trim());
+      hasChanges = true;
+      console.log('Name changed:', this.modalService.nameAr.trim());
     }
     
-    if (this.selectedImageFile) {
+    if (imageChanged && this.selectedImageFile) {
       formData.append('service_image', this.selectedImageFile);
-      console.log('Appended service_image:', this.selectedImageFile.name);
+      hasChanges = true;
+      console.log('Image changed:', this.selectedImageFile.name);
     }
 
-    // Log FormData contents
-    console.log('FormData entries:');
-    formData.forEach((value, key) => {
-      console.log(`  ${key}:`, value);
-    });
+    // If nothing changed, just close the modal
+    if (!hasChanges) {
+      this.notificationService.success('لا توجد تغييرات');
+      this.closeEditModal();
+      return;
+    }
+
+    // Log what's being sent
+    console.log('Sending changes - Name:', nameChanged, 'Image:', imageChanged);
 
     this.servicesService
       .updateService(this.modalService.id, formData, true)

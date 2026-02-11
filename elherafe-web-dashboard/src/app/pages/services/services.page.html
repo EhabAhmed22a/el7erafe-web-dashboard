@@ -305,15 +305,10 @@
                             <img [src]="selectedImagePreview || modalService.imageSrc" alt="صورة الخدمة" class="w-full h-full object-cover" />
                         </div>
                         <div class="text-right">
-                            <p class="text-sm font-bold text-gray-800">{{ selectedImageFile?.name || (modalService.nameAr + '.jpg') }}</p>
+                            <p class="text-sm font-bold text-gray-800">{{ selectedImageFile?.name || 'الصورة الحالية' }}</p>
                             <p class="text-xs text-gray-400">{{ selectedImageFile ? (selectedImageFile.size / 1024 | number:'1.0-0') + 'kb' : 'صورة الخدمة' }}</p>
                         </div>
                     </div>
-                    <button type="button" (click)="removeImage()" class="text-red-500 hover:text-red-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                        </svg>
-                    </button>
                 </div>
             }
             
