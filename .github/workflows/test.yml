@@ -1,0 +1,84 @@
+name: Deploy Angular App to Azure Storage
+
+on:
+  push:
+    branches: [ "newinfra" ] 
+
+env:
+  AZURE_STORAGE_ACCOUNT: "el7rafedashboard2"
+  AZURE_STORAGE_CONTAINER: '$web'
+  NODE_VERSION: '22.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+          working-directory: ./elherafe-web-dashboard
+   
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: check if the package-lock.json exists
+      run: |
+        ls -la
+        if [ ! -f package-lock.json ]; then
+          echo "package-lock.json not found!"
+          exit 1
+        fi
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ./elherafe-web-dashboard/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci  #Only downloads changed packages
+
+    - name: Build application
+      run: npm run build -- --configuration production
+      env:
+        NODE_ENV: production
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-files
+        path: ./elherafe-web-dashboard/dist/
+        retention-days: 1
+
+  deploy-to-staging:
+    if: github.ref == 'refs/heads/newinfra'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist-files
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID2 }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID2 }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID2 }}
+
+
+    - name: Deploy to Azure Storage     
+      uses: azure/CLI@v2
+      with:
+        azcliversion: 2.80.0 
+        inlineScript: |
+           az storage blob upload-batch \
+            --destination '$web' \
+            --source ./elherafe-web-dashboard/browser/ \
+            --account-name ${{ env.AZURE_STORAGE_ACCOUNT }} \
+            --auth-mode login \
+            --overwrite
+        

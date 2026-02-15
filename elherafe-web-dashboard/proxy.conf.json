@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://el7rafe-gma4hrg0e9epfsc0.uaenorth-01.azurewebsites.net",
+    "target": "https://el7rafeapp.azurewebsites.net",
     "secure": true,
     "changeOrigin": true
   }
