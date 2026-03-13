@@ -59,7 +59,7 @@
                             <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">رقم التلفون</th>
                             <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">الحرفة</th>
                             <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">المحافظة / المدينة</th>
-                            <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">آخر نشاط</th>
+                            <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">عدد المعاملات</th>
                             <th class="py-3.5 px-4 text-right font-normal border-b border-[#5B8DEF]">وثائق</th>
                             <th class="py-3.5 px-4 text-center font-normal border-b border-[#5B8DEF]"></th>
                         </tr>
@@ -76,7 +76,7 @@
                             <td class="py-4 px-4 text-[#4B5563] border-b border-[#D1D5DB]" style="font-size: 13px;">{{ tech.phone }}</td>
                             <td class="py-4 px-4 text-[#4B5563] border-b border-[#D1D5DB]" style="font-size: 13px;">{{ tech.serviceType || '-' }}</td>
                             <td class="py-4 px-4 text-[#4B5563] border-b border-[#D1D5DB]" style="font-size: 13px;">{{ tech.governorate }} / {{ tech.city }}</td>
-                            <td class="py-4 px-4 text-[#4B5563] font-mono text-xs border-b border-[#D1D5DB]">-</td>
+                            <td class="py-4 px-4 text-[#4B5563] font-mono text-xs border-b border-[#D1D5DB]">0</td>
                             <td class="py-4 px-4 border-b border-[#D1D5DB]">
                                 <button class="flex items-center gap-1.5 text-[#3775FA] hover:text-blue-700 transition"
                                         [disabled]="!tech.faceIdImage && !tech.backIdImage && !tech.criminalRecordImage"
